@@ -1,0 +1,17 @@
++--------------------------------------------------------------------------+
+| Job on the BlueBEAR cluster:
+| Starting at Mon Apr 22 23:33:27 2024 for dueckerk(608938)
+| Identity jobid 8550704 jobname a_tfr.sh
+| Array Identity 8550701_3
+| Running against project jenseno-entrainment and in partition icelake-shared
+| Requested cpu=1,mem=60G,node=1,billing=1 - 01:00:00 walltime
+| Assigned to nodes bear-pg0207u13b
+| Command /rds/projects/j/jenseno-visual-search-rft/Visual Search RFT/matlab scripts/alpha/a_tfr.sh
+| WorkDir /rds/projects/j/jenseno-visual-search-rft/Visual Search RFT/matlab scripts/alpha
++--------------------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| Finished at Mon Apr 22 23:59:26 2024 for dueckerk(608938) on the BlueBEAR Cluster
+| Required (25:33.039 cputime, 25211898K memory used) - 00:26:00 walltime
+| JobState COMPLETING - Reason None
+| Exitcode 0:0
++--------------------------------------------------------------------------+

@@ -1,0 +1,232 @@
+%% Visual Search + RIFT
+% Duecker, Shapiro, Hanslmayr, Wolfe, Pan, and Jensen
+
+% d: prep: alpha vs time-on-task!
+
+% Input
+% -s : subject index
+
+
+% Output
+% csv file per participant, containing RT and alpha power for each trial 
+
+% [c] Katharina Duecker, katharina.duecker@gmail.com
+% last changed/checked 5 Aug 2023
+
+clear all; close all; clc; beep off;
+addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
+ft_defaults;
+
+pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+addpath(fullfile(pth, 'Violinplot-Matlab-master'))
+
+load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+outpth = fullfile(pth,'results','meg','9 GLM', 'glm spec quinn et al','power RT condi');
+plotpth = fullfile(pth,'results','meg','9 GLM', 'glm spec quinn et al','fig','power RT condi');
+mkdir(plotpth)
+col_palette = [228,131,12; 146, 90,20; 12, 146, 237; 20, 87, 132; 0 0 0; 120 120 120]./255;
+condi = {{'ni','16t'},{'ti','16t'}, {'ni','32t'},{'ti','32t'}};
+
+addpath(genpath(fullfile(pth,'ScientificColourMaps7')))
+load('batlow10.mat')
+
+addpath(fullfile(pth,'matlab scripts/',"cbrewer/"))
+cm = cbrewer('div','RdBu',201);
+cm = flipud(cm);
+
+%% GLM figure Alpha ~ condition
+
+close all
+load(fullfile(outpth,'stat_GLM_power.mat'))
+
+
+% find which regressors have an effect
+for i = 1:length(stat)
+    
+    % positive clusters
+    if ~isempty(stat{i}.posclusters)
+        pos_cluster_pvals = [stat{i}.posclusters(:).prob];
+        pos_cluster_id{i} = find(pos_cluster_pvals < 0.01);
+        pos_pos{i}      = ismember(stat{i}.posclusterslabelmat, pos_cluster_id{i});
+        pos_cluster(i) = sum(pos_pos{i}(:));
+    else
+        pos_cluster(i) = 0;
+    end
+    
+    % negative clusters
+    if ~isempty(stat{i}.posclusters)
+        neg_cluster_pvals = [stat{i}.negclusters(:).prob];
+        neg_cluster_id{i} = find(neg_cluster_pvals < 0.01);
+        neg_pos{i}      = ismember(stat{i}.negclusterslabelmat, neg_cluster_id{i});
+        neg_cluster(i) = sum(neg_pos{i}(:));
+    else
+        neg_cluster(i) = 0;
+    end
+    
+end
+
+
+
+idx_sign = find(logical(neg_cluster + pos_cluster));
+
+% find frequencies
+for s = idx_sign
+    
+    if ~isempty(neg_cluster_id{s})
+        
+        for i = 1:length(neg_cluster_id{s})
+            
+            if length(neg_cluster_id{s}) > 1
+                cluster_pos{s}{i} = ismember(stat{s}.negclusterslabelmat, neg_cluster_id{s}(i));
+            else
+                cluster_pos{s}{i}= ismember(stat{s}.negclusterslabelmat, neg_cluster_id{s});
+            end
+            
+            
+        end
+        
+    end
+    
+    if ~isempty(pos_cluster_id{s})
+        
+        for i = 1:length(pos_cluster_id{s})
+            
+            if length(pos_cluster_id{s}) > 1
+                cluster_pos{s}{i} = ismember(stat{s}.posclusterslabelmat, pos_cluster_id{s}(i));
+            else
+                cluster_pos{s}{i} = ismember(stat{s}.posclusterslabelmat, pos_cluster_id{s});
+                
+            end
+        end
+        
+    end
+    
+    
+end
+
+
+
+for s = idx_sign
+    
+    for i = 1:length(cluster_pos{s})
+        
+
+        fig = figure('Position',[0 0 1940 1080]);
+        f_idx = logical(sum(sum(cluster_pos{s}{i},3)));
+        freq = stat{1}.freq(f_idx);
+        
+        t_idx = find(logical(sum(sum(cluster_pos{s}{i},2))));
+        
+        c = 5;
+        r = ceil(length(t_idx)/c);
+        
+        h = 0;
+        for t = t_idx'
+            h = h + 1;
+            subplot(r,c,h)
+            cfg = [];
+            cfg.parameter = 'stat';
+            cfg.zlim = [-2, 2];
+            cfg.highlight = 'on';
+            cfg.marker = 'off';
+            cfg.layout = 'neuromag306cmb_helmet.mat';
+            cfg.xlim = [stat{1}.time(t) stat{1}.time(t)];
+            cfg.ylim = [freq(1) freq(end)];
+            cfg.highlightchannel = stat{i}.label(logical(sum(cluster_pos{s}{i}(:,f_idx,t),2)));
+            cfg.comment = 'xlim';
+            cfg.commentpos = 'title';
+            cfg.zlim = 'maxabs';
+            ft_topoplotTFR(cfg,stat{s})
+            colormap(cm)
+            %colorbar
+        end
+    sgtitle([regr_names{s}, ' cluster ', num2str(i),', ' num2str(round(freq(1))), ' to ', num2str(round(freq(end))), ' Hz'])
+    
+    print(fig,fullfile(plotpth,[regr_names{s}, ' cluster ', num2str(i),'no_slouch']),'-dpng')
+    end
+        
+
+end
+
+
+close all;
+h = 1;
+
+fig = figure('Position', [0 0 1940 1080/3]);
+for s = idx_sign
+    for i = 1:length(cluster_pos{s})
+        
+        chan_idx = logical(sum(sum(cluster_pos{s}{i},2),3));
+        t_idx = find(squeeze(logical(sum(sum(cluster_pos{s}{i},1),2))));
+        f_idx = find(logical(sum(sum(cluster_pos{s}{i},3))));
+
+        subplot(2,9,h)
+        cfg = [];
+        cfg.parameter = 'stat';
+        cfg.comment = 'no';
+        cfg.xlim = [stat{1}.time(t_idx(1)) stat{1}.time(t_idx(end))];
+        cfg.ylim = [stat{1}.freq(f_idx(1)) stat{1}.freq(f_idx(end))];
+        cfg.zlim = [-3 3];
+        cfg.layout = 'neuromag306cmb_helmet.mat';
+        cfg.highlightchannel = stat{1}.label(chan_idx);
+        cfg.highlight = 'on';
+            cfg.marker = 'off';
+        ft_topoplotTFR(cfg,stat{s})
+        
+        h = h + 1;
+        
+        subplot(2,9,h:h+1)
+        cfg = [];
+        cfg.parameter = 'stat';
+        cfg.zlim = [-2.5 2.5];
+        cfg.channel = stat{1}.label(chan_idx);
+        
+        cfg.layout = 'neuromag306cmb_helmet.mat';
+        
+        ft_singleplotTFR(cfg,stat{s})
+        xticks(-1.2:0.4:0.4)
+        colormap(cm)
+        cb = colorbar;
+        cb.Limits = round(cb.Limits,1);
+        cb.Ticks = [cb.Limits(1) 0 cb.Limits(end)];
+        title([regr_names{s}, ' cluster'])
+        h = h +2;
+    end
+    
+end
+
+% s = s + 1;
+% subplot(2,9,h)
+% cfg = [];
+% cfg.parameter = 'stat';
+% cfg.comment = 'no';
+% 
+% cfg.zlim = 'maxabs';
+% cfg.layout = 'neuromag306cmb_helmet.mat';
+% 
+% cfg.marker = 'off';
+% ft_topoplotTFR(cfg,stat{s})
+% 
+% h = h + 1;
+% 
+% subplot(2,9,h:h+1)
+% cfg = [];
+% cfg.parameter = 'stat';
+% cfg.zlim = 'maxabs';
+% 
+% cfg.layout = 'neuromag306cmb_helmet.mat';
+% 
+% ft_singleplotTFR(cfg,stat{s})
+% xticks(-1.2:0.4:0.4)
+% colormap(cm)
+% cb = colorbar;
+% cb.Limits = round(cb.Limits,1);
+% cb.Ticks = [cb.Limits(1) 0 cb.Limits(end)];
+% title([regr_names{s}])
+        
+        
+
+print(fig,fullfile(plotpth,'average_TFR_reg'),'-dpng')
+
+
+

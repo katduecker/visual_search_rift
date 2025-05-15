@@ -1,0 +1,25 @@
+Java/1.8.0_281
+MATLAB/2019b
+Opening log file:  /rds/homes/d/dueckerk/java.log.47660
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2019 The MathWorks, Inc.
+                  R2019b (9.7.0.1190202) 64-bit (glnxa64)
+                              August 21, 2019
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+[Warning: "/rds/projects/2018/jenseno-entrainment/fieldtrip" not found in path.] 
+[> In rmpath (line 71)
+  In a_tfr (line 39)
+  In run (line 91)] 
+{Index exceeds the number of array elements (31).
+
+Error in a_tfr (line 44)
+outpth = fullfile(outpth,subj{s});
+
+Error in run (line 91)
+evalin('caller', strcat(script, ';'));
+} 
