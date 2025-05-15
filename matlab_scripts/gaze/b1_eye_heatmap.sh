@@ -10,4 +10,4 @@ set -eu
 module purge; module load bluebear
 module load MATLAB/2019b
 
-matlab -nodisplay -r "run c1_eye_heatmap(${SLURM_ARRAY_TASK_ID}), quit"
+matlab -nodisplay -r "run b1_eye_heatmap(${SLURM_ARRAY_TASK_ID}), quit"

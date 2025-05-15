@@ -1,7 +1,7 @@
 %% Eye movement heatmap
 
 
-function c1_eye_heatmap(s)
+function b1_eye_heatmap(s)
 
 rmpath(genpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip/'))
 addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')

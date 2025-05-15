@@ -45,5 +45,5 @@ TFR_alpha = ft_selectdata(cfg,TFR_alpha);
 TFR_alpha_avg = ft_selectdata(cfg,TFR_alpha_avg);
 
 mkdir(fullfile(outpth,folds{s}))
-save(fullfile(outpth,folds{s},['data_winl_',num2str(winl*10),'.mat']),'TFR_alpha','TFR_alpha_avg','perf_TFR','-v7.3')
+save(fullfile(outpth,folds{s},['data_winl_',num2str(winl*10),'.mat']),'TFR_alpha','TFR_alpha_avg','-v7.3')
 

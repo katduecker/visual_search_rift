@@ -10,11 +10,11 @@
 % a: ocular artefacts for alpha high low
 % b: ocular artefacts for fast vs slow trials
 
-function b1_eye_movement_rt(s)
+function a1_eye_movement_rt(s)
 
 addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
 ft_defaults;
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
 inpth = fullfile(pth,'results','meg','4 split conditions', 'sinusoid');
 mergepth = fullfile(pth,'results','meg','2 merged edf mat');
@@ -22,10 +22,10 @@ dtpth = fullfile(pth,'data');
 cohpth = fullfile(pth,'results','meg','5 COH hilb', 'coh','sinusoid','conditions','alpha RFT');
 occupth = fullfile(pth,'results','eyelink');
 mkdir(occupth)
-addpath(genpath(fullfile(pth,'matlab scripts')))
+addpath(genpath(fullfile(pth,'matlab_scripts')))
 condi = {{'ni','16t'},{'ti','16t'}, {'ni','32t'},{'ti','32t'}};
 
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi_not_align.mat'));
+load(fullfile(pth,'matlab scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 folds = subj;
 

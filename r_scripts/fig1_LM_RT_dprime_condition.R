@@ -1,24 +1,23 @@
 library(lme4)
 library(rstatix)
-#install.packages("rsq")
 library(rsq)
 
 
 # Search performance per condition (linear model)
 
-dir_behav = "Z:\\Visual Search RFT\\results\\behavior"
+dir_behav = "/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/results/behavior"
 
 
 # change name of .csv file to check analyse based on split during search
 
-file_name = "perf_condi.csv"
+file_name = "fig1_performance_condi.csv"
 
 file_path = file.path(dir_behav,file_name)
 data <- read.csv(file_path)
 
 data$id <- factor(data$id)
 
-# decode condition into set size and guided/unguided
+# recode condition into set size and guided/unguided
 
 data$gui.ung[data$condi==1] <- 0
 data$gui.ung[data$condi==2] <- 1

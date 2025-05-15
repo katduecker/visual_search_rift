@@ -16,14 +16,14 @@ clear all; close all; clc;
 
 % path settings
 %rmpath(genpath('/rds/projects/2018/jenseno-entrainment/'))
-addpath('/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT')
 addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
 
 ft_defaults;
 
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
+addpath(pth)
 
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 outpth = fullfile(pth,'results','meg','9 GLM', 'glm spec quinn et al','T boost D supp');
 
@@ -32,7 +32,7 @@ addpath(fullfile(pth,'matlab scripts/',"cbrewer/"))
 cm = cbrewer('div','RdBu',101);
 cm = flipud(cm);
 
-which_set = 'set32';
+which_set = 'set16';
 
 %% Load individual GLMs
 glm_subj = cell(length(subj),1);
@@ -97,7 +97,7 @@ cfg.tail             = -1;
 cfg.clustertail      = -1;
 statD = ft_timelockstatistics(cfg,grand_coh,null_hyp);
 
-save(fullfile(outpth,['tboost_dsuppr_cluster_coh.mat']),'statT','statD')
+save(fullfile(outpth,['suppfig2_tboost_dsuppr_cluster_coh_',which_set,'.mat']),'statT','statD')
 
 %% Plot
 fig = figure;

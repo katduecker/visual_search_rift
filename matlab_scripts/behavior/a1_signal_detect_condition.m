@@ -12,12 +12,12 @@
 
 %% set up paths
 clear all; close all; clc; beep off;
-addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
-ft_defaults;
-addpath('/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT/matlab scripts/RT')
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
 mergepth = fullfile(pth,'results','meg', '2 merged edf mat');       % path containing trial structure
+inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid','clean data all trials');
+
 alphapth = fullfile(pth,'results','meg','6 Alpha');
 alphapowpth = fullfile(alphapth,'pow');
 cohpth = fullfile(pth,'results','meg','5 COH hilb', 'coh','sinusoid','conditions','alpha RFT');
@@ -25,7 +25,7 @@ behavpth = fullfile(pth,'results','behavior');
 
 condi = {{'ni','16t'},{'ti','16t'}, {'ni','32t'},{'ti','32t'}};
 
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 
 % load trigger specs
@@ -38,20 +38,21 @@ d_prime_data = zeros(length(subj),2,4);
 
 load(fullfile(pth, 'experiment','trigdef.mat'))
 
-
 for s = 1:length(subj)
-    % loop over subjects
-    % select behavior that went into TFR analysis
-    load(fullfile(alphapowpth,subj{s},'data_winl_5.mat'),'perf_TFR')
+    % load behavior per participant
+    d = dir(fullfile(inpth,subj{s}));
+    d = {d.name};
+    files = d(end);
+    load(fullfile(inpth,subj{s},files{1}), 'behav_array');
     
     %% both correct present and absent are encoded as "hit" -> change correct target absent trials into "ca" (correct absent)
     ta_idx = cell2mat(cellfun(@(x) ~isempty(x),regexp(trigdef(:,2),'ta'),'UniformOutput',false));
     
     % find "hit" target absent trials
-    h_ta_idx = (ismember([perf_TFR{:,1}],[trigdef{ta_idx}])' + strcmp(perf_TFR(:,2),'h')) == 2;
-    perf_TFR(h_ta_idx,2) = {'ca'};
+    h_ta_idx = (ismember([behav_array{:,1}],[trigdef{ta_idx}])' + strcmp(behav_array(:,2),'h')) == 2;
+    behav_array(h_ta_idx,2) = {'ca'};
     
-    save(fullfile(alphapowpth,subj{s},'data_winl_5.mat'),'perf_TFR','-append')
+    save(fullfile(inpth,subj{s},files{1}), 'behav_array','-append')
    
     %% Select trials
     % load trial indices that are included in alpha-RFT analyses (randomly
@@ -64,10 +65,10 @@ for s = 1:length(subj)
 
         cur_trig = vertcat(trigdef{c_idx,1});
         
-        trl_idx = ismember(vertcat(perf_TFR{:,1}),cur_trig);
+        trl_idx = ismember(vertcat(behav_array{:,1}),cur_trig);
 
         % select trials
-        perf_trl = perf_TFR(trl_idx,:);
+        perf_trl = behav_array(trl_idx,:);
         
 
         %% Signal detection measures

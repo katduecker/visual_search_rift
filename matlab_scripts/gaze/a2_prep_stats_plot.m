@@ -11,7 +11,7 @@
 % b: ocular artefacts for fast vs slow trials
 
 clear all; close all; clc; beep off;
-pth = 'Z:\Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
 inpth = fullfile(pth,'results','meg','4 split conditions', 'sinusoid');
 mergepth = fullfile(pth,'results','meg','2 merged edf mat');
@@ -23,7 +23,7 @@ addpath(genpath(fullfile(pth,'matlab scripts')))
 condi = {{'ni','16t'},{'ti','16t'}, {'ni','32t'},{'ti','32t'}};
 col_palette = [0,114,178;86,180,233;213,94,0;230,159,0]./255;
 
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi_not_align.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg",'idx_subjoi.mat'));
 
 time_oi = [-1 0];
 time_oi_str = arrayfun(@num2str, time_oi.*1000,'UniformOutput',false);
@@ -82,98 +82,71 @@ blinkT = array2table(blinkT,'VariableNames',{'id','condi','fast','num_bl'});
 %% Plots
 
 fig = figure('Position',[0 0 1920 1080/2.5]);
-subplot(141)
-scatter(t_bias(:,[2,1,4,3],1),t_bias(:,[2,1,4,3],2),[],col_palette,'filled','MarkerFaceAlpha',0.5,'MarkerEdgeAlpha',0.5)
-hold on
-scatter(mean(t_bias(:,[2,1,4,3],1),1),mean(t_bias(:,[2,1,4,3],2),1),50,col_palette,'filled','MarkerEdgeColor',[0 0 0])
-diag = linspace(.35,.65,35);
-xlim([0.35 0.65])
-ylim([0.35 0.65])
-xticks(0.35:0.15:0.65)
-yticks(0.35:0.15:0.65)
-xtickformat('%.2f')
-ytickformat('%.2f')
-plot(diag,diag,'-.','Color','k')
-pbaspect([1 1 1])
-xlabel('target bias fast')
-ylabel('target bias slow')
-print(fig,fullfile(occupth,'target_bias_rt'),'-dsvg')
-print(fig,fullfile(occupth,'target_bias_rt'),'-dpng')
+for i = [2,1,4,3]
+    
+    subplot(131)
+    x = [blink(:,[2,1,4,3],2,1);blink(:,[2,1,4,3],2,2)];
+    mx = round(max(x(:))+0.05,1);
+    scatter(blink(:,i,2,1),blink(:,i,2,2),[],col_palette(i,:),'filled','MarkerFaceAlpha',0.5,'MarkerEdgeAlpha',0.5)
+    hold on
+    scatter(mean(blink(:,i,2,1),1),mean(blink(:,i,2,2),1),50,col_palette(i,:),'filled','MarkerEdgeColor',[0 0 0])
+    diag = linspace(0,mx,140);
+    xticks(0:mx/2:mx)
+    yticks(0:mx/2:mx)
+    xtickformat('%.1f')
+    ytickformat('%.1f')
+    plot(diag,diag,'-.','Color','k')
+    pbaspect([1 1 1])
+    xlabel('blinks/trial fast')
+    ylabel('blinks/trial slow')
+    
+    subplot(132)
+    x = [sacc(:,i,2,1); sacc(:,i,2,2)];
+    mx = round(max(x(:)));
+    scatter( sacc(:,i,2,1), sacc(:,i,2,2),[],col_palette(i,:),'filled','MarkerFaceAlpha',0.5,'MarkerEdgeAlpha',0.5)
+    hold on
+    scatter(mean( sacc(:,i,2,1),1),mean( sacc(:,i,2,2),1),50,col_palette(i,:),'filled','MarkerEdgeColor',[0 0 0])
+    diag = linspace(0,mx,140);
+    xticks(0:mx/2:mx)
+    yticks(0:mx/2:mx)
+    xlim([0 mx])
+    ylim([0 mx])
+    xtickformat('%.1f')
+    ytickformat('%.1f')
+    plot(diag,diag,'-.','Color','k')
+    pbaspect([1 1 1])
+    xlabel('saccades/trial fast')
+    ylabel('saccades/trial slow')
+    
+    subplot(133)
+    
+    scatter(t_bias(:,i,1),t_bias(:,i,2),[],col_palette(i,:),'filled','MarkerFaceAlpha',0.5,'MarkerEdgeAlpha',0.5)
+    hold on
+    scatter(mean(t_bias(:,i,1)),mean(t_bias(:,i,2)),50,col_palette(i,:),'filled','MarkerEdgeColor',[0 0 0])
+    
+    diag = linspace(.35,.65,35);
+    xlim([0.35 0.65])
+    ylim([0.35 0.65])
+    xticks(0.35:0.15:0.65)
+    yticks(0.35:0.15:0.65)
+    xtickformat('%.2f')
+    ytickformat('%.2f')
+    plot(diag,diag,'-.','Color','k')
+    pbaspect([1 1 1])
+    xlabel('target bias fast')
+    ylabel('target bias slow')
+    
+end
 
-% saccades and blinks
-fig = figure('Position',[0 0 1920 1080/2.5]);
-% subplot(141)
-% scatter(bl_subj_condi_bslsearch_fs(:,[2,1,4,3],1,1),bl_subj_condi_bslsearch_fs(:,[2,1,4,3],1,2),[],col_palette,'filled','MarkerFaceAlpha',0.5,'MarkerEdgeAlpha',0.5)
-% hold on
-% scatter(mean(bl_subj_condi_bslsearch_fs(:,[2,1,4,3],1,1),1),mean(bl_subj_condi_bslsearch_fs(:,[2,1,4,3],1,2),1),50,col_palette,'filled','MarkerEdgeColor',[0 0 0])
-% diag = linspace(0,1.4,140);
-% xticks(0:0.7:1.4)
-% yticks(0:0.7:1.4)
-% xtickformat('%.1f')
-% ytickformat('%.1f')
-% plot(diag,diag,'-.','Color','k')
-% pbaspect([1 1 1])
-% xlabel('blinks/trial fast')
-% ylabel('blinks/trial slow')
-% title('baseline')
 
-subplot(141)
-x = [blink(:,[2,1,4,3],2,1);blink(:,[2,1,4,3],2,2)];
-mx = round(max(x(:))+0.05,1);
-scatter(blink(:,[2,1,4,3],2,1),blink(:,[2,1,4,3],2,2),[],col_palette,'filled','MarkerFaceAlpha',0.5,'MarkerEdgeAlpha',0.5)
-hold on
-scatter(mean(blink(:,[2,1,4,3],2,1),1),mean(blink(:,[2,1,4,3],2,2),1),50,col_palette,'filled','MarkerEdgeColor',[0 0 0])
-diag = linspace(0,mx,140);
-xticks(0:mx/2:mx)
-yticks(0:mx/2:mx)
-xtickformat('%.1f')
-ytickformat('%.1f')
-plot(diag,diag,'-.','Color','k')
-pbaspect([1 1 1])
-xlabel('blinks/trial fast')
-ylabel('blinks/trial slow')
-%title('search')
-
-
-% subplot(143)
-% scatter(sac_subj_condi_bslsearch_fs(:,[2,1,4,3],1,1),sac_subj_condi_bslsearch_fs(:,[2,1,4,3],1,2),[],col_palette,'filled','MarkerFaceAlpha',0.5,'MarkerEdgeAlpha',0.5)
-% hold on
-% scatter(mean(sac_subj_condi_bslsearch_fs(:,[2,1,4,3],1,1),1),mean(sac_subj_condi_bslsearch_fs(:,[2,1,4,3],1,2),1),50,col_palette,'filled','MarkerEdgeColor',[0 0 0])
-% diag = linspace(0,7,140);
-% xticks(0:3.5:7)
-% yticks(0:3.5:7)
-% xtickformat('%.1f')
-% ytickformat('%.1f')
-% plot(diag,diag,'-.','Color','k')
-% pbaspect([1 1 1])
-% xlabel('saccades/trial fast')
-% ylabel('saccades/trial slow')
-% title('baseline')
-
-subplot(142)
-x = [sacc(:,[2,1,4,3],2,1); sacc(:,[2,1,4,3],2,2)];
-mx = round(max(x(:)));
-scatter( sacc(:,[2,1,4,3],2,1), sacc(:,[2,1,4,3],2,2),[],col_palette,'filled','MarkerFaceAlpha',0.5,'MarkerEdgeAlpha',0.5)
-hold on
-scatter(mean( sacc(:,[2,1,4,3],2,1),1),mean( sacc(:,[2,1,4,3],2,2),1),50,col_palette,'filled','MarkerEdgeColor',[0 0 0])
-diag = linspace(0,mx,140);
-xticks(0:mx/2:mx)
-yticks(0:mx/2:mx)
-xlim([0 mx])
-ylim([0 mx])
-xtickformat('%.1f')
-ytickformat('%.1f')
-plot(diag,diag,'-.','Color','k')
-pbaspect([1 1 1])
-xlabel('saccades/trial fast')
-ylabel('saccades/trial slow')
-%title('search')
-
-print(fig,fullfile(occupth,'artefacts_rt'),'-dsvg')
-print(fig,fullfile(occupth,'artefacts_rt'),'-dpng')
-
+print(fig,fullfile(occupth,'gaze_rt'),'-dsvg')
+print(fig,fullfile(occupth,'gaze_rt'),'-dpng')
 
 
 writetable(biasT,fullfile(occupth,'bias_fast_slow.csv'))
 writetable(sacT,fullfile(occupth,'saccades_fast_slow.csv'))
 writetable(blinkT,fullfile(occupth,'blinks_fast_slow.csv'))
+
+writetable(blinkT, fullfile(occupth, 'gaze_fast_slow.xls'), 'Sheet', 'blinks')
+writetable(sacT, fullfile(occupth, 'gaze_fast_slow.xls'), 'Sheet', 'saccades')
+writetable(biasT, fullfile(occupth, 'gaze_fast_slow.xls'), 'Sheet', 'gaze bias')

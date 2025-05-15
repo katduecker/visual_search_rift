@@ -39,7 +39,7 @@ else
 end
 
 
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
 cohpth = fullfile(pth,'results','meg','5 COH hilb', 'coh','RT');
 alphapth = fullfile(pth,'results','meg','6 Alpha','not align','pow align iaf');
@@ -60,7 +60,7 @@ toi = [-2.5,2];                 % length of trial in seconds (-2.5 to 2 s)
 fs = 1000;                      % sampling rate MEG
 filttype = {'but','twopass'};
 % list subjects
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg",'idx_subjoi.mat'));
 
 % time interval of interest
 timevec = linspace(toi(1),toi(2),diff(toi)*fs);      % timevector based on g_split_trl.m in preprocessing

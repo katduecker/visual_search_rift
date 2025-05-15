@@ -12,10 +12,10 @@
 % b. performance for alpha high vs low
 
 clear all; close all; clc; beep off;
-addpath('Z:\fieldtrip')
-ft_defaults;
-addpath('Z:\Visual Search RFT\Violinplot-Matlab-master')
-pth = 'Z:\Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
+
+addpath(fullfile(pth, 'Violinplot-Matlab-master'))
+
 set(0,'defaultAxesFontSize',12,'defaultAxesFontName','Arial')
 
 mergepth = fullfile(pth,'results','meg', '2 merged edf mat');       % path containing trial structure
@@ -90,4 +90,5 @@ T(length(mean_rt)*3+1:length(mean_rt)*4,5) =  repmat({4},length(mean_rt),1);
 
 
 T = cell2table(T,'VariableNames',{'id','RT','d','C','condi'});
-writetable(T,fullfile(behavpth,'perf_condi.csv'),'Delimiter',',')
+writetable(T,fullfile(behavpth,'fig1_performance_condi.csv'),'Delimiter',',')
+writetable(T,fullfile(behavpth,'fig1_performance_condi.xlsx'),'Sheet','data')

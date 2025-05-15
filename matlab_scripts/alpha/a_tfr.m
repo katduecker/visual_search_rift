@@ -31,7 +31,7 @@ function a_tfr(s)
 toi = -1.75:0.05:0.5;
 winl = 1;
 %% settings
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
 inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid','clean data all trials');
 outpth = fullfile(pth,'results','meg','6 Alpha', 'pow');
@@ -39,7 +39,7 @@ outpth = fullfile(pth,'results','meg','6 Alpha', 'pow');
 rmpath('/rds/projects/2018/jenseno-entrainment/fieldtrip')
 addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
 
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 outpth = fullfile(outpth,subj{s});
 mkdir(outpth)

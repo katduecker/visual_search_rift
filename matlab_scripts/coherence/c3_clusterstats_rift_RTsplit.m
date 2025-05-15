@@ -21,7 +21,7 @@ clear all; close all; clc
 
 split_ta_tp = 0;            % split for target present/absent?
 bslcor = 0;                 % baseline corrected coherence?
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 addpath(fullfile(pth,'Violinplot-Matlab-master'))
 addpath(fullfile('/rds/projects/j/jenseno-visual-search-rft/','fieldtrip'))
 ft_defaults;
@@ -64,7 +64,12 @@ load(fullfile(cohpth,['coh_RT',bslcor_suf,split_suf,'.mat']))
 
 % time vector
 min_rt = length(coh_condiT{1,2})/1000-0.5;
-timevec = linspace(-0.5,min_rt,length(coh_condiT{1,2}));
+timevec = linspace(-0.5,min_rt,length(coh_condiT{1,2}))
+
+load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
+
+id = [1:length(subj)]';
+variablenames = [{'id'}, arrayfun(@num2str, timevec, 'UniformOutput', false)];
 
 % gradnaverage
 for c = 1:length(condi)
@@ -73,6 +78,16 @@ for c = 1:length(condi)
 
     coh_condiD{c,4} = mean(coh_condiD{c,2},1);
     coh_condiD{c,5} = mean(coh_condiD{c,3},1);
+    
+    % export data for sharing
+    T = array2table([id, coh_condiT{c,2}], 'VariableNames', variablenames);
+    writetable(T, fullfile(cohpth, 'Suppfig2_coherence_fast_slow.xlsx'), 'Sheet', [varnames{c},' target fast'])
+    T = array2table([id, coh_condiT{c,3}], 'VariableNames', variablenames);
+    writetable(T, fullfile(cohpth, 'Suppfig2_coherence_fast_slow.xlsx'), 'Sheet', [varnames{c},' target slow'])
+    T = array2table([id, coh_condiD{c,2}], 'VariableNames', variablenames);
+    writetable(T, fullfile(cohpth, 'Suppfig2_coherence_fast_slow.xlsx'), 'Sheet', [varnames{c},' distractor fast'])
+    T = array2table([id, coh_condiD{c,3}], 'VariableNames', variablenames);
+    writetable(T, fullfile(cohpth, 'Suppfig2_coherence_fast_slow.xlsx'), 'Sheet', [varnames{c},' distractor slow'])
 end
 
 % if split based on target present/absent only consider guided search from

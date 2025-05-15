@@ -21,7 +21,7 @@
 %% settings
 clear all; close all; clc; beep off;
 
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
 cohpth = fullfile(pth,'results','meg','5 COH hilb', 'SNR');
 
@@ -33,7 +33,7 @@ mergepth = fullfile(pth,'results','meg', '2 merged edf mat');       % path conta
 
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
 addpath(fullfile('/rds/projects/j/jenseno-visual-search-rft/','fieldtrip'))
-addpath(fullfile(pth,'matlab scripts/',"cbrewer/"))
+addpath(fullfile(pth,'matlab_scripts/',"cbrewer/"))
 cm = cbrewer('div','RdBu',101);
 cm = flipud(cm);
 
@@ -45,7 +45,7 @@ fw = 2;                                     % bandwidth bp filter
 fs = 1000;
 foi = 50:75;
 % list subjects
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 addpath(fullfile(pth, 'raacampbell-shadedErrorBar-19cf3fe/'))
 %% load in example subject to get ft structure
@@ -151,6 +151,7 @@ end
 % 
 % close all
 
+% Fig. 2
 coh_soi60 = cell(1,length(subj));
 coh_soi67 = cell(1, length(subj));
 coh_spec60 = cell(1, length(subj));
@@ -191,6 +192,14 @@ end
 
 %% Grandavergae (Fig 3a)
 
+cfg = [];
+cfg.keepindiviudal = 'yes';
+GA60_all = ft_freqgrandaverage(cfg,coh_all60{:});
+GA60_all.grad = coh_all60{1}.grad;
+GA60_all = rmfield(GA60_all, 'cfg');
+
+save(fullfile(cohpth, 'fig2a_suppfig1_rift_60Hz_subj.mat'), 'GA60_all')
+
 GA60 = ft_freqgrandaverage([],coh_all60{:});
 GA67 = ft_freqgrandaverage([], coh_all67{:});
 
@@ -201,6 +210,18 @@ ga_tfr60 = mean(vertcat(coh_soi60{:}));
 ga_tfr67 = mean(vertcat(coh_soi67{:}));
 
 ga_tfr = squeeze(mean(vertcat(coh_soi60{:}, coh_soi67{:})));
+
+freqvec = freqgrad.freq;
+save(fullfile(cohpth, 'fig2bc_rift_spectrum_tfr.mat'), 'ga_spec60', 'ga_spec67', 'ga_tfr', 'freqvec')
+
+
+T = cell2table(num2cell(ga_spec60),'VariableNames',arrayfun(@num2str, freqgrad.freq, 'UniformOutput', false));
+T.id = [1:length(subj)]';
+writetable(T,fullfile(cohpth,'fig2b_rift_spectra.xls'), 'Sheet', 1)
+
+T = cell2table(num2cell(ga_spec67),'VariableNames',arrayfun(@num2str, freqgrad.freq, 'UniformOutput', false));
+T.id = [1:length(subj)]';
+writetable(T,fullfile(cohpth,'fig2b_rift_spectra.xls'), 'Sheet', 2)
 
 close all
 fig = figure('Position', [0, 0, 1980, 1080/3]);

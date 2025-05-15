@@ -18,7 +18,7 @@ clear all; close all; clc; beep off;
 
 fwdth = 3.5;
 filttype = {'firws', 'twopass'};
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
 cohpth = fullfile(pth,'results','meg','5 COH hilb', 'coh','conditions', 'no noise diode');
 alphapth = fullfile(pth,'results','meg','6 Alpha','pow','alpha RT');
@@ -34,18 +34,20 @@ ft_defaults;
 set(0,'defaultAxesFontSize',12,'defaultAxesFontName','Arial')
 col_palette = [228,131,12; 146, 90,20; 12, 146, 237; 20, 87, 132; 0 0 0; 120 120 120]./255;
 
-addpath(fullfile(pth,'matlab scripts','RT'))
+addpath(fullfile(pth,'matlab_scripts','RT'))
 
 
 % load coherence over time per condition
 load(fullfile(cohpth,['cohspct_subj_fwdth_',num2str(fwdth),strjoin(filttype,'_'),'_bslcor.mat']))
+
+
 
 fs = 1000;                                                      % sampling rate
 min_rt = size(coh_subj_ni32_T,2)/fs-0.5;                        % minimum RT
 timevec = linspace(-0.5,min_rt,size(coh_subj_ni32_T,2));        % time vector
 
 % list subjects
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 
 %% load in example subject to get ft structure
@@ -78,6 +80,43 @@ ERF.var = ERF.var(1:204,1:length(timevec));
 ERF.dof = ERF.dof(1:204,1:length(timevec));
 clear d f idx idxx trlstruct
 
+
+% save data for data sharing
+id = [1:length(subj)]';
+variablenames = [{'id'}, arrayfun(@num2str, timevec, 'UniformOutput', false)];
+
+% unguided 16 Target
+T = array2table([id, coh_subj_ni16_T], 'VariableNames', variablenames);
+writetable(T,fullfile(cohpth,'fig2d_coherence_set16.xlsx'), 'Sheet', 1)
+
+% guided 16 Target
+T = array2table([id, coh_subj_ti16_T], 'VariableNames', variablenames);
+writetable(T,fullfile(cohpth,'fig2d_coherence_set16.xlsx'), 'Sheet', 2)
+
+% unguided 16 Distractor
+T = array2table([id, coh_subj_ni16_D], 'VariableNames', variablenames);
+writetable(T,fullfile(cohpth,'fig2d_coherence_set16.xlsx'), 'Sheet', 3)
+
+% guided 16 Distractor
+T = array2table([id, coh_subj_ti16_D], 'VariableNames', variablenames);
+writetable(T,fullfile(cohpth,'fig2d_coherence_set16.xlsx'), 'Sheet', 4)
+
+
+% unguided 32 Target
+T = array2table([id, coh_subj_ni32_T], 'VariableNames', variablenames);
+writetable(T,fullfile(cohpth,'fig2e_coherence_set32.xlsx'), 'Sheet', 1)
+
+% guided 32 Target
+T = array2table([id, coh_subj_ti32_T], 'VariableNames', variablenames);
+writetable(T,fullfile(cohpth,'fig2e_coherence_set32.xlsx'), 'Sheet', 2)
+
+% unguided 16 Distractor
+T = array2table([id, coh_subj_ni32_D], 'VariableNames', variablenames);
+writetable(T,fullfile(cohpth,'fig2e_coherence_set32.xlsx'), 'Sheet', 3)
+
+% guided 16 Distractor
+T = array2table([id, coh_subj_ti32_D], 'VariableNames', variablenames);
+writetable(T,fullfile(cohpth,'fig2e_coherence_set32.xlsx'), 'Sheet', 4)
 
 %% set size 16
 
