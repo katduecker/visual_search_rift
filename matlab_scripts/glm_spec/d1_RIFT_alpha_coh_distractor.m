@@ -1,5 +1,5 @@
 %% Investigating Guided Search using Rapid Invisible Frequency Tagging
-% Paper 2: Blanket inhibition
+% Paper 2: Higher baseline alpha power is associated with faster responses in visual search
 
 %% GLM RIFT ~ alpha power
 % Fit a GLM to the single-trial coherence analysis

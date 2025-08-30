@@ -1,5 +1,5 @@
 %% Investigating Guided Search using Rapid Invisible Frequency Tagging
-% Paper 2: Blanket inhibition
+% Paper 2: Higher baseline alpha power is associated with faster responses in visual search
 
 %% GLM Spectrum analysis
 % Test the GLM RT coefficients in occipital sensors against zero
@@ -11,7 +11,7 @@
 
 function b2_GLM_spec_stats()
 
-suf = '_fourier_noz';
+suf = '_fourier';    
 %% paths
 addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
 ft_defaults;

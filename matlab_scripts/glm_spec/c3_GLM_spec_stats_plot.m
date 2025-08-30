@@ -1,5 +1,5 @@
 %% Investigating Guided Search using Rapid Invisible Frequency Tagging
-% Paper 2: Blanket inhibition
+% Paper 2: Higher baseline alpha power is associated with faster responses in visual search
 
 %% GLM Spectrum analysis
 % Plot results of cluster-based test
@@ -14,7 +14,7 @@ clear all; close all; clc
 
 addpath('RainCloudPlots/tutorial_matlab/')
 
-suf = '_fourier_noz';
+suf = '_fourier';   % this suffix is for historic reasons
 addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
 ft_defaults;
 

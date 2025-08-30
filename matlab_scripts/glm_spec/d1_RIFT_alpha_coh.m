@@ -1,5 +1,5 @@
 %% Investigating Guided Search using Rapid Invisible Frequency Tagging
-% Paper 2: Blanket inhibition
+% Paper 2: Higher baseline alpha power is associated with faster responses in visual search
 
 %% GLM RIFT ~ alpha power
 % Fit a GLM to the single-trial coherence analysis
@@ -251,12 +251,6 @@ Y = (coh_T.trial+coh_D.trial)./2;
 % T stats
 T_tot = totGLM(Xtot,Y);
 
-% H2: increased top-down control
-Y = (coh_T.trial-coh_D.trial);
-
-% T stats
-T_tot = totGLM(Xtot,Y);
-
 
 %% alpha model
 
@@ -266,19 +260,10 @@ Y_H1 = (coh_T.trial+coh_D.trial)./2;
 % T stats
 T_alpha_H1 = alphaGLM(Y_H1,alpha_pow,gui);
 
-% H2: increased top-down control
-Y_H2 = (coh_T.trial-coh_D.trial);
-
-% T stats
-T_alpha_H2 = alphaGLM(Y_H2,alpha_pow,gui);
-
 
 %% Tot and alpha
 % H1: blanket
 T_alpha_tot_H1 = totalphaGLM(gui,alpha_pow,tot,Y_H1);
-
-% H2: top down
-T_alpha_tot_H2 = totalphaGLM(gui,alpha_pow,tot,Y_H2);
 
 %% Permutations
 block_boundaries = [1];
@@ -336,13 +321,6 @@ for n =1:num_perm
     T_alpha_H1_perm(n,:) = alphaGLM(Y_H1,alpha_pow,gui);
     
     T_alpha_tot_H1_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y_H1);
-    
-    % H2: top-down control
-    Y_H2  = shuf_T-shuf_D;
-    
-    T_alpha_H2_perm(n,:) = alphaGLM(Y_H2,alpha_pow,gui);
-    
-    T_alpha_tot_H2_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y_H2);  
     
 end
 
