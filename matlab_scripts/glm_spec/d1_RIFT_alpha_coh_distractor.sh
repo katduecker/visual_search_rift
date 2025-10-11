@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#  j3_single_trial_corr.sh
+#  d1_RIFT_alpha_coh_distractor.sh
 #  
 #
-#  Created by Katharina Duecker on 06/02/2024.
+#  (c) Katharina Duecker, last updated Oct 5 2025.
 #
 #SBATCH --ntasks 4
 #SBATCH --time 30:0

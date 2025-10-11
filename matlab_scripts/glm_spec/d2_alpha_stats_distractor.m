@@ -1,18 +1,24 @@
-%% Blanket inhibition test
+%% Investigating Guided Search using Rapid Invisible Frequency Tagging
+% Paper 2: Alpha inhibition
 
+%% GLM Spectrum analysis
+% Test suppression of distractors by alpha hypothesis
+
+% (c), Katharina Duecker
+% last edited, Oct-05-2025
 
 clear all; close all; clc;
 
 which_set = 'gui';
 
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
-addpath('/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT')
-addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
+
+
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
+addpath(fullfile(pth,'fieldtrip'))
 ft_defaults;
 
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
-
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg",'idx_subjoi.mat'));
 plotpth = fullfile(pth,'results','meg','9 GLM', 'fig','GLM_rift_results');
 mkdir(plotpth)
 outpth = fullfile(pth,'results','meg','9 GLM', 'glm_rift');
@@ -96,7 +102,7 @@ cfg.template = 'neuromag306cmb_neighb.mat';
 neighbours = ft_prepare_neighbours(cfg);
 
 % load occipital sensors
-load(fullfile(pth, 'matlab scripts', 'preprocessing MEG','occi_sens.mat'))
+load(fullfile(pth, 'matlab_scripts', 'preproc_meg','occi_sens.mat'))
 
 cfg = [];
 cfg.neighbours       = neighbours;                 % fieldtrip template                    

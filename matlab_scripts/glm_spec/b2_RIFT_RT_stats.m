@@ -28,11 +28,11 @@ load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 outpth = fullfile(pth,'results','meg','9 GLM', 'glm spec quinn et al','T boost D supp');
 
 % colormap
-addpath(fullfile(pth,'matlab scripts/',"cbrewer/"))
+addpath(fullfile(pth,'matlab_scripts/',"cbrewer/"))
 cm = cbrewer('div','RdBu',101);
 cm = flipud(cm);
 
-which_set = 'set16';
+which_set = 'set32';
 
 %% Load individual GLMs
 glm_subj = cell(length(subj),1);
@@ -102,7 +102,7 @@ save(fullfile(outpth,['suppfig2_tboost_dsuppr_cluster_coh_',which_set,'.mat']),'
 %% Plot
 fig = figure;
 cfg = [];
-cfg.layout = 'neuromag306cmb_helmet.mat';
+cfg.layout = 'neuromag306cmb.lay';
 cfg.parameter = 'avg';
 cfg.zlim = 'maxabs';
 cfg.marker = 'off';

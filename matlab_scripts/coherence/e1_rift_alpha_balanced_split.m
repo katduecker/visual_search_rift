@@ -1,10 +1,10 @@
 %% Investigating Guided Search using Rapid Invisible Frequency Tagging
-% Paper 2: Blanket inhibition
+% Paper 2: Alpha inhibition
 
 %% Balanced median split RIFT ~ alpha
 
 % (c), Katharina Duecker
-% last edited, Nov-29-2024
+% last edited, Oct-05-2025
 
 function e1_rift_alpha_balanced_split(s, n_blocks)
 
@@ -19,11 +19,10 @@ filttype={'firws', 'twopass'};
 freq_split = 'glm';
 
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
-addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
+
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
+addpath(fullfile(pth, 'fieldtrip'))
 ft_defaults;
-
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
-
 addpath(fullfile(pth,'matlab scripts','alpha'))
 
 
@@ -36,7 +35,7 @@ cohsoipth = fullfile(pth,'results','meg','5 COH hilb', 'soi','sinusoid');
 glmpth = fullfile(pth,'results','meg','9 GLM', 'glm_spec');
 
 % load participant id's
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts',"preproc_meg",'idx_subjoi.mat'));
 
 % make output directory
 mkdir(fullfile(cohpth,subj{s}));
@@ -102,15 +101,9 @@ elseif strcmp(freq_split,'glm')
     
     % split based on SOI identified using GLM
     winl = 1;
-    load(fullfile(glmpth,'glm_rt_chan_fourier_noz.mat'))
+    load(fullfile(glmpth,'glm_rt_chan_fourier.mat'))
+    chan_subj = subj_soi{s};
 
-    
-    if ~isempty(subj_soi{s})
-        chan_subj = subj_soi{s};
-    else
-        chan_subj = chan_rep;
-    end
-    
     soi = {};
     for c = 1:length(chan_subj)
         chan = {chan_subj{c}(1:7)};
@@ -120,7 +113,7 @@ elseif strcmp(freq_split,'glm')
     end
     
     cfg.channel = soi;
-    cfg.foi = f_peak(s);
+    cfg.foi = f_rep;
 end
 
 cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
@@ -133,6 +126,7 @@ TFR = ft_freqanalysis(cfg,data);
 cfg = [];
 cfg.method = 'sum';
 TFR = ft_combineplanar(cfg,TFR);
+
 
 % IAF
 cfg = [];

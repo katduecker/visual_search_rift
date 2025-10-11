@@ -11,13 +11,11 @@
 function e2_rift_balanced_split_cluster()
 
 % paths
-addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
+rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
+addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
 ft_defaults;
 
-pth = '/rds/projects/j/jenseno-visual-search-rft/Visual Search RFT';
-
-addpath(fullfile(pth,'matlab scripts','alpha'))
-
+pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
 inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid');
 
@@ -26,7 +24,7 @@ soipth = fullfile(alphapth,'iaf_soi');
 
 cohpth = fullfile(pth,'results','meg','5 COH hilb', 'coh','balanced_split');
 cohsoipth = fullfile(pth,'results','meg','5 COH hilb', 'soi','sinusoid');
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
+load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 avg_cohT_high = zeros(length(subj),4,1001);
 avg_cohT_low = zeros(length(subj),4,1001);
@@ -36,7 +34,7 @@ avg_cohD_low = zeros(length(subj),4,1001);
 timevec = linspace(-0.5,0.5,1001);
 
 for s = 1:length(subj)
-    load(fullfile(cohpth,subj{s},'balanced_split_glm_-300_0_4_blocksfirws_twopass.mat'))
+    load(fullfile(cohpth,subj{s},'balanced_split_glm_-1000_-50_4_blocksfirws_twopass.mat'))
     
     avg_cohT_high(s,:,:) = cohT_high(:,2000:3000);
     avg_cohD_high(s,:,:) = cohD_high(:,2000:3000);
@@ -52,8 +50,6 @@ end
 maxfpth = fullfile(pth,'results','meg', '1 maxfilter','1 maxfilter');             % max filter
 mergepth = fullfile(pth,'results','meg', '2 merged edf mat');       % path containing trial structure
 fs = 1000;
-% list subjects
-load(fullfile(pth,'matlab scripts/',"preprocessing MEG/",'idx_subjoi.mat'));
 
 d = dir(fullfile(maxfpth,subj{1}));
 fast = {d.name};
@@ -126,6 +122,38 @@ cfg.clustertail = -1;
 
 stat = ft_timelockstatistics(cfg,COH_high{:},COH_low{:});
 
+
+cfg         = [];
+
+cfg.method           = 'analytic';                                            % cluster-based
+cfg.channel          = ERF.label{1};
+cfg.statistic        = 'cohensd';                                           % within subject
+%cfg.correctm         = 'cluster';
+cfg.clusteralpha     = 0.05;                                                    % sample-specific t-value
+cfg.clusterstatistic = 'maxsum';                                                % maximum t-value will be evaluated under permutation distribution
+cfg.minnbchan        = 0;
+% cfg.neighbours       = neighbours;  % same as defined for the between-trials experiment
+cfg.alpha            = 0.05;
+cfg.numrandomization = 1000;
+
+Nsubj  = length(subj);
+design = zeros(2, Nsubj*2);
+design(1,:) = [1:Nsubj 1:Nsubj];
+design(2,:) = [ones(1,Nsubj) ones(1,Nsubj)*2];
+
+cfg.design = design;
+cfg.uvar   = 1;
+cfg.ivar   = 2;
+
+% compare coherence for high and low alpha
+
+% Target
+cfg.clustertail = 1;
+cfg.tail        = 1;
+cfg.statistic ='cohensd';
+
+cohensd = ft_timelockstatistics(cfg,COH_high{:},COH_low{:});
+
 % unguided search, 32
 
 COH_high = cell(1,length(subj));
@@ -167,7 +195,37 @@ cfg.ivar     = 2;
 cfg.tail             = 0;                                                       % two-sided test for both clustering and cluter-level statistic
 cfg.clustertail = 0;
 
-%statung = ft_timelockstatistics(cfg,COH_high{:},COH_low{:});
+statung = ft_timelockstatistics(cfg,COH_high{:},COH_low{:});
+
+cfg         = [];
+cfg.method           = 'analytic';                                            % cluster-based
+cfg.channel          = ERF.label{1};
+cfg.statistic        = 'cohensd';                                           % within subject
+%cfg.correctm         = 'cluster';
+cfg.clusteralpha     = 0.05;                                                    % sample-specific t-value
+cfg.clusterstatistic = 'maxsum';                                                % maximum t-value will be evaluated under permutation distribution
+cfg.minnbchan        = 0;
+% cfg.neighbours       = neighbours;  % same as defined for the between-trials experiment
+cfg.alpha            = 0.05;
+cfg.numrandomization = 1000;
+
+Nsubj  = length(subj);
+design = zeros(2, Nsubj*2);
+design(1,:) = [1:Nsubj 1:Nsubj];
+design(2,:) = [ones(1,Nsubj) ones(1,Nsubj)*2];
+
+cfg.design = design;
+cfg.uvar   = 1;
+cfg.ivar   = 2;
+
+% compare coherence for high and low alpha
+
+% Target
+cfg.clustertail = 1;
+cfg.tail        = 1;
+
+cohensdung = ft_timelockstatistics(cfg,COH_high{:},COH_low{:});
+
 
 %% Compare individually for Target and Distractor
 % not included in paper
@@ -205,48 +263,48 @@ end
 
 statD = ft_timelockstatistics(cfg,COHD_high{:},COHD_low{:});
 
-save(fullfile(cohpth,'RIFT_balanced_split_glm_H1.mat'),'stat','avg_cohT_high','avg_cohT_low','avg_cohD_high','avg_cohD_low','statT','statD')
-%% High minus low
-
-% guided search, 32
-
-COH_high = cell(1,length(subj));
-COH_low = cell(1,length(subj));
-
-for s = 1:length(subj)
-    COH_high{s} = ERF;
-    COH_high{s}.avg(1,:) = squeeze((avg_cohT_high(s,4,:,:)-avg_cohD_high(s,4,:,:)));
-    
-    COH_low{s} = ERF;
-    COH_low{s}.avg(1,:) = squeeze((avg_cohT_low(s,4,:,:)-avg_cohD_low(s,4,:,:)));
-end
-
-cfg                  = [];
-cfg.method           = 'montecarlo';
-cfg.channel          = ERF.label{1};
-cfg.statistic        = 'ft_statfun_depsamplesT';
-cfg.correctm         = 'cluster';
-cfg.clusteralpha     = 0.05; 
-% sample-specific t-value
-cfg.minnbchan        = 0;
-cfg.alpha            = 0.05;
-cfg.numrandomization = 5000;
-cfg.latency = [0.1 0.5];
-
-design = ones(2,2*length(subj));
-design(1,:) = [1:length(subj), 1:length(subj)];
-design(2,length(subj)+1:2*length(subj)) = 2;
-
-cfg.design   = design;
-cfg.uvar     = 1;
-cfg.ivar     = 2;
-
-% compare coherence high low
-
-cfg.tail             = 1;                                                       % two-sided test for both clustering and cluter-level statistic
-cfg.clustertail = 1;
-
-
-stat = ft_timelockstatistics(cfg,COH_high{:},COH_low{:});
-
-save(fullfile(cohpth,'RIFT_balanced_split_glm_H2.mat'),'stat','avg_cohT_high','avg_cohT_low','avg_cohD_high','avg_cohD_low')
+save(fullfile(cohpth,'RIFT_balanced_split_glm_H1.mat'),'stat','statung', 'cohensd', 'cohensdung', 'avg_cohT_high','avg_cohT_low','avg_cohD_high','avg_cohD_low','statT','statD')
+% %% High minus low
+% 
+% % guided search, 32
+% 
+% COH_high = cell(1,length(subj));
+% COH_low = cell(1,length(subj));
+% 
+% for s = 1:length(subj)
+%     COH_high{s} = ERF;
+%     COH_high{s}.avg(1,:) = squeeze((avg_cohT_high(s,4,:,:)-avg_cohD_high(s,4,:,:)));
+%     
+%     COH_low{s} = ERF;
+%     COH_low{s}.avg(1,:) = squeeze((avg_cohT_low(s,4,:,:)-avg_cohD_low(s,4,:,:)));
+% end
+% 
+% cfg                  = [];
+% cfg.method           = 'montecarlo';
+% cfg.channel          = ERF.label{1};
+% cfg.statistic        = 'ft_statfun_depsamplesT';
+% cfg.correctm         = 'cluster';
+% cfg.clusteralpha     = 0.05; 
+% % sample-specific t-value
+% cfg.minnbchan        = 0;
+% cfg.alpha            = 0.05;
+% cfg.numrandomization = 5000;
+% cfg.latency = [0.1 0.5];
+% 
+% design = ones(2,2*length(subj));
+% design(1,:) = [1:length(subj), 1:length(subj)];
+% design(2,length(subj)+1:2*length(subj)) = 2;
+% 
+% cfg.design   = design;
+% cfg.uvar     = 1;
+% cfg.ivar     = 2;
+% 
+% % compare coherence high low
+% 
+% cfg.tail             = 1;                                                       % two-sided test for both clustering and cluter-level statistic
+% cfg.clustertail = 1;
+% 
+% 
+% stat = ft_timelockstatistics(cfg,COH_high{:},COH_low{:});
+% 
+% save(fullfile(cohpth,'RIFT_balanced_split_glm_H2.mat'),'stat','avg_cohT_high','avg_cohT_low','avg_cohD_high','avg_cohD_low')

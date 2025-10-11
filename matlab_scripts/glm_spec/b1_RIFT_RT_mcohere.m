@@ -14,7 +14,7 @@
 
 % Fit the GLM for each individual participant.
 
-function d1_RIFT_RT_mcohere(s)
+function b1_RIFT_RT_mcohere(s)
 
 % Inputs:
 % - s: subject index

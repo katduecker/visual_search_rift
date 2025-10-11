@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#  b1_GLM_spectrum_indv.sh
+#  c2_GLM_spec_stats.sh
 #  
 #
-#  Created by Katharina Duecker on 06/02/2024.
+#  (c) Katharina Duecker, last updated Oct 5 2025
 #
 #SBATCH --ntasks 1
-#SBATCH --time 00:10:0
+#SBATCH --time 01:00:0
 #SBATCH --mem 50G
 #SBATCH --qos bbdefault
 #SBATCH --account=jenseno-visual-search-rft

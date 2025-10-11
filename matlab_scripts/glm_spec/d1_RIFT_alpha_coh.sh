@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#  j3_single_trial_corr.sh
+#  d1_RIFT_alpha_coh.sh
 #  
 #
-#  Created by Katharina Duecker on 06/02/2024.
+#  (c) Katharina Duecker, last updated Oct 5 2025.
 #
 #SBATCH --ntasks 4
 #SBATCH --time 30:0
@@ -17,4 +17,4 @@ set -eu
 module purge; module load bluebear
 module load MATLAB/2019b
 
-matlab -nodisplay -r "run d1_RIFT_alpha_coh(${SLURM_ARRAY_TASK_ID}, \"gui\"), quit"
+matlab -nodisplay -r "run d1_RIFT_alpha_coh(${SLURM_ARRAY_TASK_ID}, \"\"), quit"

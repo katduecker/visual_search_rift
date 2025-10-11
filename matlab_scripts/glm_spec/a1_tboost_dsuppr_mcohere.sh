@@ -3,7 +3,7 @@
 #  a1_tboost_dsuppr.sh
 #  
 #
-#  Created by Katharina Duecker on 06/02/2024.
+#  (c) Katharina Duecker, last updated Oct 5, 2025
 #
 #SBATCH --ntasks 4
 #SBATCH --time 20:0
