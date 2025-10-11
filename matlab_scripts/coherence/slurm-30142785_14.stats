@@ -1,0 +1,18 @@
++--------------------------------------------------------------------------+
+| Job on the BlueBEAR cluster:
+| Starting at Wed Oct  8 23:12:23 2025 for dueckerk(608938)
+| Identity jobid 30142810 jobname e1_rift_alpha_balanced_split.sh
+| Array Identity 30142785_14
+| Running against project jenseno-visual-search-rft and in partition emerald-shared
+| Requested cpu=1,mem=60G,node=1,billing=1 - 01:00:00 walltime
+| Allocated cpu=1,mem=60G,node=1,billing=1
+| Assigned to nodes bear-pg0201u19a
+| Command /rds/projects/j/jenseno-visual-search-rft/visual_search_rift/matlab_scripts/coherence/e1_rift_alpha_balanced_split.sh
+| WorkDir /rds/projects/j/jenseno-visual-search-rft/visual_search_rift/matlab_scripts/coherence
++--------------------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| Finished at Wed Oct  8 23:16:43 2025 for dueckerk(608938) on the BlueBEAR Cluster
+| Required (03:55.946 cputime, 17104671K memory used) - 00:04:23 walltime
+| JobState COMPLETING - Reason None
+| Exitcode 0:0
++--------------------------------------------------------------------------+
