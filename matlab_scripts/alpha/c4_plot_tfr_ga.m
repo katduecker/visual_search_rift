@@ -1,7 +1,7 @@
 %% Visual Search + RIFT
 % Duecker, Shapiro, Hanslmayr, Wolfe, Pan, and Jensen
 
-% c4. plot grandaverage alpha TFR (Fig 4 a)
+% c4. plot grandaverage alpha TFR 
 
 % [c] Katharina Duecker, katharina.duecker@gmail.com
 % last changed/checked 2 Aug 2023

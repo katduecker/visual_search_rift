@@ -639,7 +639,7 @@ print(fig,fullfile(plotpth,['supp_other_reg_fourier',suf]),'-dsvg')
 
 
 % plot reaction time regressor and change sign for graphical abstract
-fig = figure('Position',[0 0 1940 1080/3]);
+fig = figure('Position',[10 0 1900 1080/3]);
 i = 5;
 cfg = [];
 cfg.parameter = 'powspctrm';
