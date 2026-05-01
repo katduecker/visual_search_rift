@@ -16,7 +16,7 @@ function e1_rift_alpha_balanced_split(s, n_blocks)
 fwdth = 3.5;
 filttype={'firws', 'twopass'};
 
-freq_split = 'glm';
+freq_split = 'iaf_glm';
 
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
 
@@ -114,6 +114,23 @@ elseif strcmp(freq_split,'glm')
     
     cfg.channel = soi;
     cfg.foi = f_rep;
+elseif strcmp(freq_split,'iaf_glm')
+    % split based on SOI identified using GLM
+    winl = 1;
+    load(fullfile(glmpth,'glm_rt_chan_fourier.mat'))
+    chan_subj = subj_soi{s};
+
+    soi = {};
+    for c = 1:length(chan_subj)
+        chan = {chan_subj{c}(1:7)};
+        soi = [soi;chan];
+        chan = {['MEG',chan_subj{c}(9:end)]};
+        soi = [soi;chan];
+    end
+    
+    cfg.channel = soi;
+    cfg.foi = f_peak(s);
+    
 end
 
 cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
@@ -130,7 +147,7 @@ TFR = ft_combineplanar(cfg,TFR);
 
 % IAF
 cfg = [];
-cfg.latency = [time_oi(1), time_oi(end)];
+cfg.latency = [glm_time_sig(1), glm_time_sig(2)];
 cfg.avgoverchan = 'yes';
 cfg.avgovertime = 'yes';
 cfg.avgoverfreq = 'yes';
@@ -300,7 +317,7 @@ for c_idx = 1:length(condi_all)
 
 end
 
-toi_split = [time_oi(1), time_oi(end)];
+toi_split = [glm_time_sig(1), glm_time_sig(2)];
 toi_split = strjoin(arrayfun(@(x) num2str(x),toi_split.*1000,'UniformOutput',false),'_');
 filttype = strjoin(filttype, '_');
 save(fullfile(cohpth,subj{s},['balanced_split_',freq_split,'_',toi_split,'_',num2str(n_blocks),'_blocks', filttype]),'cohT_high','cohD_high','cohT_low','cohD_low','n_trials', 'hits_high', 'hits_low')

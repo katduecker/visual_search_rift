@@ -6,7 +6,7 @@
 #  (c) Katharina Duecker, last updated Oct 5, 2025
 #
 
-#SBATCH --ntasks 4
+#SBATCH --ntasks 1
 #SBATCH --time 30:0
 #SBATCH --mem 60G
 #SBATCH --qos bbdefault

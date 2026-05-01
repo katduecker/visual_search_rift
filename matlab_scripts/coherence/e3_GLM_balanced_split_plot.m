@@ -115,7 +115,7 @@ load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 subj_hits = zeros(length(subj),2);
 for s = 1:length(subj)
-    load(fullfile(cohpth,subj{s},'balanced_split_glm_-1000_-50_4_blocksfirws_twopass.mat'), 'hits_high', 'hits_low')
+    load(fullfile(cohpth,subj{s},'balanced_split_iaf_glm_-1000_-50_4_blocksfirws_twopass.mat'), 'hits_high', 'hits_low')
     subj_hits(s,1) = sum(hits_high)/length(hits_high);
     subj_hits(s,2) = sum(hits_low)/length(hits_low);
 end

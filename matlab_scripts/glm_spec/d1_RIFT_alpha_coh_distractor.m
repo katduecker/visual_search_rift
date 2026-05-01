@@ -10,7 +10,7 @@
 % GLM fitted for each participant
 
 
-function d1_RIFT_alpha_coh_distractor(s, which_set)
+function d1_RIFT_alpha_coh_distractor(s, which_set, which_freq)
 
 % Inputs
 % - s: subject index
@@ -192,7 +192,12 @@ cfg = [];
 cfg.method = 'mtmconvol';
 cfg.channel = soi_uncmb;
 cfg.taper = 'hanning';
-cfg.foi = 4:1/winl:30;
+if strcmp(which_freq,'alpha_band')
+    cfg.foi = f_rep; 
+elseif strcmp(which_freq, 'iaf')
+    cfg.foi = f_peak(s);
+end
+
 cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
 cfg.toi = toi;
 
@@ -211,9 +216,8 @@ TFR = ft_combineplanar(cfg,TFR);
 % select time of interest
 cfg = [];
 cfg.avgoverchan = 'yes';
-cfg.latency = [time_oi(1), time_oi(end)];
-cfg.avgovertime = 'yes';
-cfg.frequency = [f_rep(1), f_rep(end)];             
+cfg.latency = [glm_time_sig(1), glm_time_sig(2)];
+cfg.avgovertime = 'yes';            
 cfg.avgoverfreq = 'yes';
 IAF = ft_selectdata(cfg,TFR);
 

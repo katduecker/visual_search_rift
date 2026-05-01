@@ -5,7 +5,7 @@
 #
 #  (c) Katharina Duecker, last updated Oct 5 2025.
 #
-#SBATCH --ntasks 4
+#SBATCH --ntasks 1
 #SBATCH --time 30:0
 #SBATCH --mem 60G
 #SBATCH --qos bbdefault
@@ -17,4 +17,4 @@ set -eu
 module purge; module load bluebear
 module load MATLAB/2019b
 
-matlab -nodisplay -r "run d1_RIFT_alpha_coh_distractor(${SLURM_ARRAY_TASK_ID}, \"gui\"), quit"
+matlab -nodisplay -r "d1_RIFT_alpha_coh_distractor(${SLURM_ARRAY_TASK_ID}, 'gui', 'iaf'), quit"

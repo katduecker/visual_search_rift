@@ -5,7 +5,7 @@
 #
 #  (c) Katharina Duecker, last updated Oct 5 2025
 #
-#SBATCH --ntasks 31
+#SBATCH --ntasks 1
 #SBATCH --time 10:00:0
 #SBATCH --mem 50G
 #SBATCH --qos bbdefault

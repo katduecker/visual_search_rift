@@ -27,7 +27,7 @@ outpth = fullfile(pth,'results','meg','9 GLM', 'glm_spec');
 plotpth = fullfile(pth,'results','meg','9 GLM', 'fig','GLM_spec_results');
 mkdir(plotpth)
 
-load(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'.mat']))
+load(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_400_piv.mat']))
 
 addpath(fullfile(pth,'matlab_scripts/',"cbrewer/"))
 cm = cbrewer('div','RdBu',201);
@@ -95,6 +95,10 @@ f2_counts = h4.BinCounts;
 
 [f1_count, f1] = groupcounts(frequency_jack(:,1));
 [f2_count, f2] = groupcounts(frequency_jack(:,2));
+
+[~, p1] = max(t1_count);
+[~, p2] = max(t2_count);
+glm_time_sig = [t1(p1), t2(p2)];
 
 col_time = [27, 158, 119; 217, 95, 2]./255;
 col_freq = [117, 112, 179; 231, 41, 138]./255;
@@ -232,7 +236,7 @@ subj_soi(cell2mat(cellfun(@isempty, subj_soi, 'UniformOutput', false))) = {chan_
 
 print(fig,fullfile(plotpth,'rt_regr_subj_zsmaller-1.96'),'-dsvg')
 
-save(fullfile(outpth,['glm_rt_chan',suf,'.mat']),'chan_rep', 'f_rep', 'subj_soi', 'time_oi', 'time_oi_all')
+save(fullfile(outpth,['glm_rt_chan',suf,'.mat']),'chan_rep', 'f_rep', 'subj_soi', 'time_oi', 'time_oi_all', 'glm_time_sig')
 
 %% Main figure: average over time points + show TFR of RT regressor
 

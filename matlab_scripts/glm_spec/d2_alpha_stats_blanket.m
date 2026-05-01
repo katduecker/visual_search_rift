@@ -9,7 +9,8 @@
 
 clear all; close all; clc;
 
-which_set = '';
+which_set = 'gui';
+which_freq = 'iaf';
 
 % addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
 % ft_defaults;
@@ -61,7 +62,7 @@ cfg.highlight = 'on';
 cfg.comment = 'no';
 cfg.highlightsize = 15;
 for s = 1:length(subj)
-    load(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'.mat')))
+    load(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'_',which_freq,'.mat')))
     
     glm_alpha = corrT; 
     glm_alpha.avg(:,1) = T_alpha_z_H1;
@@ -95,9 +96,17 @@ grand_alpha_tot = ft_timelockgrandaverage(cfg,glm_subj_alpha_tot{:});
 null_hyp = grand_alpha;
 null_hyp.individual = zeros(size(null_hyp.individual));
 
+% load(fullfile(pth, 'matlab_scripts', 'preproc_meg','occi_sens.mat'))
+% % find the combined planars belonging to the occipital sensors
+% occi_grad = zeros(size(corrT.label));
+% 
+% for c = 1:length(occi_soi)
+%     occi_grad = occi_grad + cell2mat(cellfun(@(x) ~isempty(x), regexp(corrT.label,occi_soi{c}),'UniformOutput',false));
+% end
 cfg = [];
 cfg.feedback = 'no';
 cfg.method = 'template';
+
 cfg.template = 'neuromag306cmb_neighb.mat';
 neighbours = ft_prepare_neighbours(cfg);
 
@@ -105,7 +114,9 @@ neighbours = ft_prepare_neighbours(cfg);
 load(fullfile(pth, 'matlab_scripts', 'preproc_meg','occi_sens.mat'))
 
 cfg = [];
-cfg.neighbours       = neighbours;                 % fieldtrip template                    
+cfg.neighbours       = neighbours;                 % fieldtrip template   
+%cfg.channel        = occi_grad;
+
 cfg.method           = 'montecarlo';
 cfg.minnbchan        = 2;
 cfg.statistic        = 'ft_statfun_depsamplesT';
@@ -163,6 +174,6 @@ cb.Ticks = -3:3:3;
 cb.Label.String = 'zscore';
 title('RIFTavg - alpha + tot');
 
-print(fig,fullfile(plotpth,['blanket_glm_coh_MEGGRAD_', which_set]),'-dsvg')
-print(fig,fullfile(plotpth,['blanket_glm_coh_MEGGRAD_', which_set]),'-dpng')
+print(fig,fullfile(plotpth,['blanket_glm_coh_MEGGRAD_', which_set,'_', which_freq]),'-dsvg')
+print(fig,fullfile(plotpth,['blanket_glm_coh_MEGGRAD_', which_set,'_', which_freq]),'-dpng')
 

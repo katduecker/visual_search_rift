@@ -12,7 +12,7 @@
 
 % GLM fitted for each participant
 
-function c1_GLM_spectrum_indv_fourier(s)
+function c1_GLM_spectrum_interactions(s)
 
 % Input:
 % -s: subject index
@@ -124,7 +124,7 @@ IAF = ft_selectdata(cfg,TFR);
 %% GLM
 
 % prepare design matrix
-X = ones(length(rt),7);
+X = ones(length(rt),9);
 
 % guided
 X(:,2) = condi(:,1)*2-1;
@@ -141,6 +141,13 @@ X(:,6) = tot;
 % distance to parietal sensors
 X(:,7) = dist_z;
 
+% interactions
+
+% guided*RT
+X(:,8) = X(:,2).*X(:,5);
+
+% guided * set size
+X(:,9) = X(:,3).*X(:,5);
 
 % VIF
 X_vif = X(:,2:end);
@@ -162,7 +169,6 @@ end
 if all(~(abs(VIF-VIF2)<1e-4)')
     error('VIF methods in disagreement!')
 end
-
 
 % pseudoinverse (works well in case of multicollinearity - doesn't change
 % results here
@@ -250,7 +256,7 @@ num_blocks = length(block_boundaries)-1;
 num_perm = 500;
 model_beta_perm = model_beta;
 
-T_perm = zeros(num_perm,length(IAF.label),length(IAF.freq),length(IAF.time));
+T_perm = zeros(num_perm,size(X,2),length(IAF.label),length(IAF.freq),length(IAF.time));
 
 tic
 for n =1:num_perm
@@ -296,13 +302,13 @@ for n =1:num_perm
     % T stats
     model_T_perm = model_beta_perm./sqrt(varcope);
     
-    T_perm(i,:,:,:) = model_T_perm(5,:,:,:);
+    T_perm(i,:,:,:,:) = model_T_perm;
     
 end
 toc
-z_score_T = (model_T(5,:,:,:) - mean(T_perm))./std(T_perm);
+z_score_T = (model_T - squeeze(mean(T_perm,1)))./squeeze(std(T_perm,1));
 
 
 
 
-save(fullfile(outpth,subj{s},'glm_spec_rt_fourier_piv.mat'),'model_beta','model_T','proj_spec_max_rt','proj_spec_min_rt','CohensF_rt','z_score_T', 'T_perm', 'VIF', '-v7.3')
+save(fullfile(outpth,subj{s},'glm_spec_rt_interactions_piv.mat'),'model_beta','model_T','proj_spec_max_rt','proj_spec_min_rt','CohensF_rt','z_score_T', 'T_perm', 'VIF', '-v7.3')

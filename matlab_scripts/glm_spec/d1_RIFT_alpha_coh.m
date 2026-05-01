@@ -10,7 +10,7 @@
 % GLM fitted for each participant
 
 
-function d1_RIFT_alpha_coh(s, which_set)
+function d1_RIFT_alpha_coh(s, which_set, which_freq)
 
 % Inputs
 % - s: subject index
@@ -204,7 +204,12 @@ cfg = [];
 cfg.method = 'mtmconvol';
 cfg.channel = soi_uncmb;
 cfg.taper = 'hanning';
-cfg.foi = f_rep;             
+
+if strcmp(which_freq,'alpha_band')
+    cfg.foi = f_rep; 
+elseif strcmp(which_freq, 'iaf')
+    cfg.foi = f_peak(s);
+end
 cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
 cfg.toi = toi;
 cfg.keeptrials = 'yes';
@@ -224,7 +229,7 @@ cfg = [];
 cfg.avgoverchan = 'yes';
 cfg.avgovertime = 'yes';
 cfg.avgoverfreq = 'yes';
-cfg.latency = [time_oi(1), time_oi(2)];
+cfg.latency = [glm_time_sig(1), glm_time_sig(2)];
 cfg.avgoverfreq = 'yes';
 IAF = ft_selectdata(cfg,TFR);
 
@@ -345,7 +350,7 @@ T_alpha_z_H2 = (T_alpha_H2' - mean(T_alpha_H2_perm))./std(T_alpha_H2_perm);
 T_alpha_tot_z_H1 =(T_alpha_tot_H1' - mean(T_alpha_tot_H1_perm))./std(T_alpha_tot_H1_perm);
 T_alpha_tot_z_H2 =(T_alpha_tot_H2' - mean(T_alpha_tot_H2_perm))./std(T_alpha_tot_H2_perm);
 
-save(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'.mat')),'T_tot', 'T_alpha_z_H1','T_alpha_z_H2','T_alpha_tot_z_H1','T_alpha_tot_z_H2')  
+save(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'_',which_freq,'.mat')),'T_tot', 'T_alpha_z_H1','T_alpha_z_H2','T_alpha_tot_z_H1','T_alpha_tot_z_H2')  
 
 end
 
@@ -392,7 +397,7 @@ function T_alpha = alphaGLM(Y,alpha_pow,gui)
         Xpalpha = pinv(X_alpha);
 
         % cope
-        alpha_contr = [0 0 1];        % target vs unguided contrast
+        alpha_contr = [0 0 1];        % alpha contrast
 
         % fit model with pseudoinverse matrix
         beta_alpha = Xpalpha*Yc;

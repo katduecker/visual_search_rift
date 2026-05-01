@@ -9,9 +9,9 @@
 
 % Cluster-based permutation test
 
-function c2_GLM_spec_stats()
+function c2_GLM_spec_stats(end_time)
 
-suf = '_fourier';
+suf = '_fourier_piv';
 %% paths
 addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
 ft_defaults;
@@ -132,7 +132,7 @@ cfg.clustertail      = -1;
 cfg.numrandomization = 5000;
 cfg.alpha            = 0.05;
 cfg.clusteralpha = 0.05;
-cfg.latency          = [-1.0 0.0];
+cfg.latency          = [-1, end_time];
 cfg.parameter = 'powspctrm';
 design = ones(2,2*length(subj));
 design(1,:) = [1:length(subj), 1:length(subj)];
@@ -163,7 +163,7 @@ stat_occi.mask(logical(occi_grad),:,:) = stat_occi_test.mask;
 stat_occi.stat(logical(occi_grad),:,:) = stat_occi_test.stat;
 stat_occi.ref(logical(occi_grad),:,:) = stat_occi_test.ref;
 
-save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'.mat']),'stat_all','stat_occi','occi_grad')
+save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_', num2str(end_time*100), '.mat']),'stat_all','stat_occi','occi_grad')
 
 
 
@@ -224,5 +224,5 @@ for s = 1:length(subj)
 
 end
 
-save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'.mat']),'interval_jack','frequency_jack','-append')
+save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'_piv.mat']),'interval_jack','frequency_jack','-append')
 
