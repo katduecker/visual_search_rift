@@ -14,7 +14,7 @@ clear all; close all; clc
 
 addpath('RainCloudPlots/tutorial_matlab/')
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
-suf = '_fourier';
+suf = '_fourier_piv';
 addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
 ft_defaults;
 
@@ -27,7 +27,7 @@ outpth = fullfile(pth,'results','meg','9 GLM', 'glm_spec');
 plotpth = fullfile(pth,'results','meg','9 GLM', 'fig','GLM_spec_results');
 mkdir(plotpth)
 
-load(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_400_piv.mat']))
+load(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_400.mat']))
 
 addpath(fullfile(pth,'matlab_scripts/',"cbrewer/"))
 cm = cbrewer('div','RdBu',201);
@@ -100,6 +100,10 @@ f2_counts = h4.BinCounts;
 [~, p2] = max(t2_count);
 glm_time_sig = [t1(p1), t2(p2)];
 
+[~, p1] = max(t1_count);
+[~, p2] = max(t2_count);
+glm_freq_sig = [f1(p1), f2(p2)];
+
 col_time = [27, 158, 119; 217, 95, 2]./255;
 col_freq = [117, 112, 179; 231, 41, 138]./255;
 fig = figure('Position',[0 0 1940/2.5 1080/2]);
@@ -153,7 +157,7 @@ for t = t_idx'
     cfg.marker = 'off';
     cfg.layout = 'neuromag306cmb_helmet.mat';
     cfg.xlim = [stat_occi.time(t) stat_occi.time(t)];
-    cfg.ylim = [freq(1) freq(end)];
+    cfg.ylim = [glm_freq_sig(1) glm_freq_sig(end)];
     cfg.highlightchannel = stat_occi.label(logical(sum(neg_pos(:,f_idx,t),2)));
     cfg.comment = 'xlim';
     cfg.commentpos = 'title';
@@ -207,7 +211,7 @@ for s = 1:length(subj)
     cfg = [];
     cfg.channel = labels;
     cfg.frequency = [f_rep(1), f_rep(end)];
-    cfg.latency = [time_oi(1), time_oi(end)];
+    cfg.latency = [glm_time_sig(1), glm_time_sig(end)];
     cfg.avgovertime = 'yes';
     cfg.avgoverfreq = 'yes';
     SPEC_T = ft_selectdata(cfg, SPEC_T);

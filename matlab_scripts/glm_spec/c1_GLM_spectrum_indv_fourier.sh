@@ -7,10 +7,10 @@
 #
 #SBATCH --ntasks 1
 #SBATCH --time 10:00:0
-#SBATCH --mem 50G
+#SBATCH --mem 10G
 #SBATCH --qos bbdefault
 #SBATCH --array 1-31
-#SBATCH --account=jenseno-visual-search-rft
+#SBATCH --account=jenseno-entrainment
 
 set -eu
 

@@ -85,10 +85,10 @@ SPECall = cell(1,length(subj));
 
 for s = 1:length(subj)
 
-    load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'z_score_T')
+    load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'z_score_T', 'T_perm')
 
-    % get T-value
-    SPEC.powspctrm(:,:,:) = squeeze(z_score_T(1,:,:,:));
+    % get T-value (z_score only contains RT condition!)
+    SPEC.powspctrm(:,:,:) = squeeze(z_score_T);
     
     SPECall{s} = SPEC;
     
@@ -163,7 +163,7 @@ stat_occi.mask(logical(occi_grad),:,:) = stat_occi_test.mask;
 stat_occi.stat(logical(occi_grad),:,:) = stat_occi_test.stat;
 stat_occi.ref(logical(occi_grad),:,:) = stat_occi_test.ref;
 
-save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_', num2str(end_time*100), '.mat']),'stat_all','stat_occi','occi_grad')
+save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_', num2str(end_time*1000), '.mat']),'stat_all','stat_occi','occi_grad')
 
 
 
@@ -224,5 +224,5 @@ for s = 1:length(subj)
 
 end
 
-save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'_piv.mat']),'interval_jack','frequency_jack','-append')
+save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'.mat']),'interval_jack','frequency_jack','-append')
 

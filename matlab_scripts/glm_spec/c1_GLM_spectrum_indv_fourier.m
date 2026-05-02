@@ -163,14 +163,8 @@ if all(~(abs(VIF-VIF2)<1e-4)')
     error('VIF methods in disagreement!')
 end
 
-
-% pseudoinverse (works well in case of multicollinearity - doesn't change
-% results here
-Xp = pinv(X);
-
 % for effect size, estimate model without RT;
 X_no_rt = X(:,[1:4,6:7]);
-Xp_no_rt = pinv(X_no_rt);
 
 % prepare empty matrices
 model_beta = zeros(size(X,2),length(IAF.label),length(IAF.freq),length(IAF.time)); % regressor
@@ -247,7 +241,7 @@ block_boundaries = [block_boundaries;length(condi)+1];
 num_blocks = length(block_boundaries)-1;
 
 % permute over blocks
-num_perm = 500;
+num_perm = 100;
 model_beta_perm = model_beta;
 
 T_perm = zeros(num_perm,length(IAF.label),length(IAF.freq),length(IAF.time));
@@ -296,13 +290,12 @@ for n =1:num_perm
     % T stats
     model_T_perm = model_beta_perm./sqrt(varcope);
     
-    T_perm(i,:,:,:) = model_T_perm(5,:,:,:);
+    T_perm(n,:,:,:) = model_T_perm(5,:,:,:);
     
+    assert(~all(T_perm(1,:)==0))
 end
 toc
 z_score_T = (model_T(5,:,:,:) - mean(T_perm))./std(T_perm);
-
-
 
 
 save(fullfile(outpth,subj{s},'glm_spec_rt_fourier_piv.mat'),'model_beta','model_T','proj_spec_max_rt','proj_spec_min_rt','CohensF_rt','z_score_T', 'T_perm', 'VIF', '-v7.3')

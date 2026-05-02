@@ -102,7 +102,7 @@ elseif strcmp(which_set, 'ungui')
     cohD = cohD(~condi(:,1),:);
     condi = condi(~condi(:,1),:);
     
-  
+   gui = zeros(length(condi),1);
     
 else
     trl_oi = logical(ones(length(condi),1));
@@ -246,13 +246,13 @@ Xtot = [const,gui,tot];
 Y = (coh_T.trial+coh_D.trial)./2;
 
 % T stats
-T_tot = totGLM(Xtot,Y);
+T_tot_H1 = totGLM(Xtot,Y);
 
 % H2: increased top-down control
 Y = (coh_T.trial-coh_D.trial).^2;
 
 % T stats
-T_tot = totGLM(Xtot,Y);
+T_tot_H2 = totGLM(Xtot,Y);
 
 
 %% alpha model
@@ -282,15 +282,33 @@ block_boundaries = [1];
 
 block_size = 0;
 
-for c = 1:length(condi)
-    if c > 1 && (condi(c) ~= condi(c-1) || block_size ==40)
+
+% distinguish between blocks for randomization
+condi_comb = [[0,0];[0,1];[1,0];[1,1]];
+
+condi_idx = zeros(length(condi),1);
+
+for c = 1:length(condi_comb)
+    cur_cond = zeros(size(condi,1),1);
+
+    for ti = 1:size(condi,1)
+        cur_cond(ti) = isequal(condi(ti,1:2),condi_comb(c,:));
+        
+    end
+    
+    condi_idx(logical(cur_cond)) = c;
+    
+end
+
+for c = 1:length(condi_idx)
+    if c > 1 && (condi_idx(c) ~= condi_idx(c-1) || block_size ==40)
        block_boundaries = [block_boundaries;c];
        block_size = 0;
     end
     block_size = block_size + 1;
 end
 
-block_boundaries = [block_boundaries;length(condi)];
+block_boundaries = [block_boundaries;length(condi)+1];
 
 num_blocks = length(block_boundaries)-1;
 
@@ -335,7 +353,7 @@ for n =1:num_perm
     T_alpha_tot_H1_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y_H1);
     
     % H2: top-down control
-    Y_H2  = shuf_T-shuf_D;
+    Y_H2  = (shuf_T-shuf_D).^2;
     
     T_alpha_H2_perm(n,:) = alphaGLM(Y_H2,alpha_pow,gui);
     
@@ -387,9 +405,10 @@ end
 function T_alpha = alphaGLM(Y,alpha_pow,gui)
    const = ones(size(Y,1),1);
     T_alpha = zeros(size(Y,2),1);
+    alpha_z = zscore(alpha_pow(:));
     for c = 1:size(Y,2)
 
-        alpha_z = zscore(alpha_pow(:));
+       
         Yc = Y(:,c);
         X_alpha = [const, gui,alpha_z];
 
@@ -429,9 +448,8 @@ function T_tot_alpha = totalphaGLM(gui,alpha_pow,tot,Y)
 
     const = ones(size(Y,1),1);
     T_tot_alpha = zeros(size(Y,2),1);
-
+    alpha_z = zscore(alpha_pow(:));
     for c = 1:size(Y,2)
-        alpha_z = zscore(alpha_pow(:));
         Yc = Y(:,c);
         X_tot_alpha = [const, gui,tot,alpha_z];
 

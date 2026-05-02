@@ -170,13 +170,9 @@ if all(~(abs(VIF-VIF2)<1e-4)')
     error('VIF methods in disagreement!')
 end
 
-% pseudoinverse (works well in case of multicollinearity - doesn't change
-% results here
-Xp = pinv(X);
 
 % for effect size, estimate model without RT;
 X_no_rt = X(:,[1:4,6:7]);
-Xp_no_rt = pinv(X_no_rt);
 
 % prepare empty matrices
 model_beta = zeros(size(X,2),length(IAF.label),length(IAF.freq),length(IAF.time)); % regressor
@@ -187,7 +183,7 @@ CohensF_rt = proj_spec_min_rt; % effect size
 
 varcope = model_T;    % variance of contrast
 
-residue_matrix = pinv(X'*X); % residual matrix
+cov_forming_matrix = pinv(X'*X); % residual matrix
 
 Y = IAF.powspctrm;      % fourier
 
@@ -198,7 +194,7 @@ for c = 1:length(IAF.freq)*length(IAF.time)*length(IAF.label)
     model_beta(:,c) = pinv(X)*Yc;
 
     % sum of squared errors
-    var_forming_matrix = diag(residue_matrix);
+    var_forming_matrix = diag(cov_forming_matrix);
     RSS = sum((Yc - (X*model_beta(:,c))).^2);
     % degrees of freedom
     dof_error = length(Y) - rank(X);
@@ -253,7 +249,7 @@ block_boundaries = [block_boundaries;length(condi)+1];
 num_blocks = length(block_boundaries)-1;
 
 % permute over blocks
-num_perm = 500;
+num_perm = 100;
 model_beta_perm = model_beta;
 
 T_perm = zeros(num_perm,size(X,2),length(IAF.label),length(IAF.freq),length(IAF.time));
@@ -285,7 +281,7 @@ for n =1:num_perm
         model_beta_perm(:,c) = pinv(X)*Yc;
         
         % sum of squared errors
-        var_forming_matrix = diag(residue_matrix);
+        var_forming_matrix = diag(cov_forming_matrix);
         RSS = sum((Yc - (X*model_beta_perm(:,c))).^2);
         % degrees of freedom
         dof_error = length(Yc) - rank(X);
@@ -302,7 +298,7 @@ for n =1:num_perm
     % T stats
     model_T_perm = model_beta_perm./sqrt(varcope);
     
-    T_perm(i,:,:,:,:) = model_T_perm;
+    T_perm(n,:,:,:,:) = model_T_perm;
     
 end
 toc
