@@ -208,8 +208,6 @@ stat_occi_set32RT.ref(logical(occi_grad),:,:) = stat_occi_test_set32RT.ref;
 save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_', num2str(end_time*100), '.mat']),'stat_all','stat_occi_RT','stat_occi_set32RT','stat_occi_guiRT','occi_grad')
 
 
-
-
 %% Jackknife to find onset of time and frequency
 
 null_hyp.powspctrm = null_hyp.powspctrm(2:end,:,:,:);

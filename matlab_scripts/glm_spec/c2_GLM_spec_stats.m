@@ -117,7 +117,7 @@ grand_freq.grad = SPECall{15}.grad;
 
 % H0: z < 0
 null_hyp = grand_freq;
-null_hyp.powspctrm =  zeros(size(null_hyp.powspctrm));
+null_hyp.powspctrm = zeros(size(null_hyp.powspctrm));
 
 
 % Neighbours

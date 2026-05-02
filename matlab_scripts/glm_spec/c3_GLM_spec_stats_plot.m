@@ -279,7 +279,7 @@ for i = 1:size(mask_line_vert,1)
     end
 end
 
-for i = 1:size(mask_line_horz,1)
+for i = 2:size(mask_line_horz,1)
     for m = 2:size(mask_line_horz,2)
         if mask_line_horz(i,m)
             plot(stat_occi.time(m-1)*ones(1,2)+0.025, stat_occi.freq(i-1:i)+0.45, 'Color', 'k', 'Linewidth',1.5)
