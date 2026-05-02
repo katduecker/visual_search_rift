@@ -198,27 +198,22 @@ for s = 1:length(subj)
     
    
     % identify sensors of interest
-    load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'model_T', 'T_perm')
+    load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'z_score_T')
 
     SPEC_T = SPEC;
-    SPEC_T.powspctrm = squeeze(model_T(5,:,:,:));
-    SPEC_perm = SPEC;
-    SPEC_perm.powspctrm = T_perm;
-    SPEC_perm.dimord = 'subj_chan_freq_time';
-    SPEC_perm_std = SPEC_perm;
+    SPEC_T.powspctrm = squeeze(z_score_T);
+
 
     % get subject SOI
     cfg = [];
     cfg.channel = labels;
-    cfg.frequency = [f_rep(1), f_rep(end)];
+    cfg.frequency = [glm_freq_sig(1), glm_freq_sig(end)];
     cfg.latency = [glm_time_sig(1), glm_time_sig(end)];
     cfg.avgovertime = 'yes';
     cfg.avgoverfreq = 'yes';
     SPEC_T = ft_selectdata(cfg, SPEC_T);
-    SPEC_perm = ft_selectdata(cfg, SPEC_perm); 
-    SPEC_perm_std = ft_selectdata(cfg, SPEC_perm_std); 
   
-    subj_soi{s} = labels((SPEC_T.powspctrm - squeeze(mean(SPEC_perm.powspctrm))')./squeeze(std(SPEC_perm_std.powspctrm))' < -1.96);
+    subj_soi{s} = labels(SPEC_T.powspctrm<0);
 
     subplot(8,4,s)
     cfg = [];
@@ -238,7 +233,7 @@ end
 
 subj_soi(cell2mat(cellfun(@isempty, subj_soi, 'UniformOutput', false))) = {chan_rep};
 
-print(fig,fullfile(plotpth,'rt_regr_subj_zsmaller-1.96'),'-dsvg')
+print(fig,fullfile(plotpth,'rt_regr_subj_zsmaller0'),'-dsvg')
 
 save(fullfile(outpth,['glm_rt_chan',suf,'.mat']),'chan_rep', 'f_rep', 'subj_soi', 'time_oi', 'time_oi_all', 'glm_time_sig')
 
@@ -261,8 +256,8 @@ cfg.zlim = 'maxabs';
 cfg.highlight = 'on';
 cfg.marker = 'off';
 cfg.layout = 'neuromag306cmb_helmet.mat';
-cfg.xlim = [time_oi(1), time_oi(end)];
-cfg.ylim = [f_rep(1) f_rep(end)];
+cfg.xlim = [glm_time_sig(1), glm_time_sig(end)];
+cfg.ylim = [glm_freq_sig(1) glm_freq_sig(end)];
 cfg.highlightchannel = chan_rep;
 cfg.zlim = 'maxabs';
 cfg.figure = 'gca';

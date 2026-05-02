@@ -82,17 +82,25 @@ subj_soi = cell(1,length(subj));
 
 SPECall = cell(1,length(subj));
 
-
+max_T = zeros(size(subj));
+max_T_perm = zeros(size(subj));
+z_T = zeros(size(subj));
 for s = 1:length(subj)
 
-    load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'z_score_T', 'T_perm')
+    load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'z_score_T', 'T_perm', 'model_T')
+    
+    T_rt = squeeze(model_T(5,:,:,:));
+    max_T(s) = max(abs(prctile(T_rt(:), [1, 50, 99])));
+    
+    max_T_perm(s) = max(abs(prctile(T_perm(:), [1, 50, 99])));
+    
+    z_T(s) = max(abs(prctile(z_score_T(:), [1, 50, 99])));
 
     % get T-value (z_score only contains RT condition!)
     SPEC.powspctrm(:,:,:) = squeeze(z_score_T);
     
     SPECall{s} = SPEC;
-    
-    
+     
 end
 
 %% Cluster based test
@@ -197,7 +205,7 @@ for s = 1:length(subj)
     cfg.numrandomization = 5000;
     cfg.alpha            = 0.05;
     cfg.clusteralpha = 0.05;
-    cfg.latency          = [-1.0 0.0];
+    cfg.latency          = [-1.0 .4];
     cfg.parameter = 'powspctrm';
     design = ones(2,2*length(subj)-2);
     design(1,:) = [1:length(subj)-1, 1:length(subj)-1];

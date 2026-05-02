@@ -189,7 +189,7 @@ for c = 1:length(IAF.freq)*length(IAF.time)*length(IAF.label)
     var_forming_matrix = diag(residue_matrix);
     RSS = sum((Yc - (X*model_beta(:,c))).^2);
     % degrees of freedom
-    dof_error = length(Y) - rank(X);
+    dof_error = size(Y,1) - rank(X);
 
     varres = RSS/dof_error;
 
@@ -242,7 +242,7 @@ num_blocks = length(block_boundaries)-1;
 
 % permute over blocks
 num_perm = 100;
-model_beta_perm = model_beta;
+model_beta_perm = zeros(size(model_beta));
 
 T_perm = zeros(num_perm,length(IAF.label),length(IAF.freq),length(IAF.time));
 
@@ -276,7 +276,7 @@ for n =1:num_perm
         var_forming_matrix = diag(residue_matrix);
         RSS = sum((Yc - (X*model_beta_perm(:,c))).^2);
         % degrees of freedom
-        dof_error = length(Yc) - rank(X);
+        dof_error = size(Y,1) - rank(X);
         
         varres = RSS/dof_error;
         
@@ -292,7 +292,9 @@ for n =1:num_perm
     
     T_perm(n,:,:,:) = model_T_perm(5,:,:,:);
     
-    assert(~all(T_perm(1,:)==0))
+    if n>1
+        assert(~all(T_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+    end
 end
 toc
 z_score_T = (model_T(5,:,:,:) - mean(T_perm))./std(T_perm);
