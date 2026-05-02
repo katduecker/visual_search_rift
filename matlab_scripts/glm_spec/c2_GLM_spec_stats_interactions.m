@@ -205,7 +205,7 @@ stat_occi_set32RT.mask(logical(occi_grad),:,:) = stat_occi_test_set32RT.mask;
 stat_occi_set32RT.stat(logical(occi_grad),:,:) = stat_occi_test_set32RT.stat;
 stat_occi_set32RT.ref(logical(occi_grad),:,:) = stat_occi_test_set32RT.ref;
 
-save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_', num2str(end_time*100), '.mat']),'stat_all','stat_occi_RT','stat_occi_set32RT','stat_occi_guiRT','occi_grad')
+save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_', num2str(end_time*1000), '.mat']),'stat_all','stat_occi_RT','stat_occi_set32RT','stat_occi_guiRT','occi_grad')
 
 
 %% Jackknife to find onset of time and frequency
@@ -237,7 +237,7 @@ for s = 1:length(subj)
     cfg.numrandomization = 5000;
     cfg.alpha            = 0.05;
     cfg.clusteralpha = 0.05;
-    cfg.latency          = [-1.0 0.0];
+    cfg.latency          = [-1.0 0.4];
     cfg.parameter = 'powspctrm';
     design = ones(2,2*length(subj)-2);
     design(1,:) = [1:length(subj)-1, 1:length(subj)-1];
