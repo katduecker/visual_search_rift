@@ -85,8 +85,8 @@ hold on
 scatter(ones(1,length(t2)).*1.5, t2, t2_count.*30, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_time(2,:))
 xlim([0.75, 1.75])
 xticks([1, 1.5])
-ylim([-1.1 0.05])
-yticks([-1:0.25:0])
+% ylim([-1.1 0.05])
+% yticks([-1:0.25:0])
 xticklabels({'onset', 'offset'})
 ylabel('time (s)')
 
@@ -96,7 +96,7 @@ hold on
 scatter(ones(1,length(f2)).*1.5, f2, f2_count.*30, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_freq(2,:))
 xlim([0.75, 1.75])
 xticks([1, 1.5])
-yticks([8:2:22])
+% yticks([8:2:22])
 xticklabels({'lower bound', 'upper bound'})
 ylabel('frequency (Hz)')
 
@@ -125,9 +125,9 @@ cfg = [];
 cfg.parameter = 'powspctrm';
 effsize = ft_freqgrandaverage(cfg, effsize_cohF{:});
 
-cfg = [];
-cfg.latency = [-1 0];
-effsize = ft_selectdata(cfg, effsize);
+% cfg = [];
+% cfg.latency = [-1 0];
+% effsize = ft_selectdata(cfg, effsize);
 
 %% Helper: build outline arrays from a stat mask
 % Returns mask_line_vert (horizontal-edge segments) and mask_line_horz (vertical-edge segments)
@@ -259,10 +259,10 @@ box off
 colormap(cm)
 
 % ===== Row 4: Cohen's f² =====
-subplot(4,3,10)
+ax4 = subplot(4,3,10);q
 cfg = [];
 cfg.parameter = 'powspctrm';
-cfg.zlim = [0, 2e-3];
+%cfg.zlim = [0, 2e-3];
 cfg.highlight = 'on';
 cfg.marker = 'off';
 cfg.layout = 'neuromag306cmb_helmet.mat';
@@ -272,11 +272,11 @@ cfg.highlightchannel = chan_rep;
 cfg.figure = 'gca';
 cfg.comment = 'no';
 ft_topoplotTFR(cfg, effsize)
-colormap(cm)
-cb = colorbar;
-title('Cohen''s f² (RT contribution)')
+colormap(ax4, cm(length(cm)/2:end,:))
+% cb = colorbar;
+% title('Cohen''s f² (RT contribution)')
 
-subplot(4,3,11:12)
+ax4 = subplot(4,3,11:12);
 imagesc(effsize.time, effsize.freq, ...
         squeeze(mean(effsize.powspctrm(ismember(effsize.label, chan_rep),:,:),1)))
 axis xy
@@ -284,10 +284,11 @@ xlabel('time (s)'); xticks(-1:0.5:0)
 ylabel('frequency (Hz)'); yticks(10:10:30)
 title('Cohen''s f² (TFR)')
 cb = colorbar;
-caxis([0, 2e-3])
+%caxis([0, 2e-3])
 cb.Label.String = 'Cohen''s f²';
 box off
-colormap(cm)
+colormap(ax4, cm(length(cm)/2:end,:))
+
 
 print(fig, fullfile(plotpth, ['main_fig_interactions', suf]), '-dsvg')
 print(fig, fullfile(plotpth, ['main_fig_interactions', suf]), '-dpng')

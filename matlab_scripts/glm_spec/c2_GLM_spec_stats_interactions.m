@@ -264,4 +264,4 @@ for s = 1:length(subj)
 
 end
 
-save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'_piv.mat']),'interval_jack','frequency_jack','-append')
+save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'.mat']),'interval_jack','frequency_jack','-append')

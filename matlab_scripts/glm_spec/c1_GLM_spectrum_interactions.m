@@ -249,7 +249,7 @@ block_boundaries = [block_boundaries;length(condi)+1];
 num_blocks = length(block_boundaries)-1;
 
 % permute over blocks
-num_perm = 100;
+num_perm = 500;
 model_beta_perm = model_beta;
 
 T_perm = zeros(num_perm,size(X,2),length(IAF.label),length(IAF.freq),length(IAF.time));
