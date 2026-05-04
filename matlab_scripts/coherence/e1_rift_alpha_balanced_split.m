@@ -6,7 +6,7 @@
 % (c), Katharina Duecker
 % last edited, Oct-05-2025
 
-function e1_rift_alpha_balanced_split(s, n_blocks)
+function e1_rift_alpha_balanced_split(s)
 
 % inputs
 % s: subject index
@@ -16,7 +16,11 @@ function e1_rift_alpha_balanced_split(s, n_blocks)
 fwdth = 3.5;
 filttype={'firws', 'twopass'};
 
-freq_split = 'iaf_glm';
+
+num_bins = 4;
+winl = 0.5;
+condi_all = {{'ni','16ta'},{'ti','16ta'}, {'ni','32ta'},{'ti','32ta'},{'ni','16tp'},{'ti','16tp'}, {'ni','32tp'},{'ti','32tp'}};
+
 
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
 
@@ -40,13 +44,12 @@ load(fullfile(pth,'matlab_scripts',"preproc_meg",'idx_subjoi.mat'));
 % make output directory
 mkdir(fullfile(cohpth,subj{s}));
 
-condi_all = {{'ni','16t'},{'ti','16t'}, {'ni','32t'},{'ti','32t'}};
+% load SOI, IAFs, and signfiicant time 
+load(fullfile(glmpth, 'glm_RT_soi_iaf_subj'))
 
-
-% load SOI
-load(fullfile(soipth,subj{s},'iaf_soi.mat'))
-load(fullfile(cohsoipth,subj{s},'soi_stat.mat'))
-
+chan_subj = subj_soi{s};
+iaf = iaf_glm(s);
+time_oi = glm_time_sig;
 
 %% load data 
 %- this is a bit complicated but the split up data has information about which diode contains the T and D signal!
@@ -91,47 +94,16 @@ trigdef = trig_load.trigdef;
 
 cfg = [];
 cfg.method = 'mtmconvol';
-if strcmp(freq_split,'iaf')
-    % split based on highest power at IAF (old paper)
-    winl = 0.5;
-    cfg.foi = iaf_grad;
-    cfg.channel = soi_grad;                     % sensors of interest
-
-elseif strcmp(freq_split,'glm')
-    
-    % split based on SOI identified using GLM
-    winl = 1;
-    load(fullfile(glmpth,'glm_rt_chan_fourier.mat'))
-    chan_subj = subj_soi{s};
-
-    soi = {};
-    for c = 1:length(chan_subj)
-        chan = {chan_subj{c}(1:7)};
-        soi = [soi;chan];
-        chan = {['MEG',chan_subj{c}(9:end)]};
-        soi = [soi;chan];
-    end
-    
-    cfg.channel = soi;
-    cfg.foi = f_rep;
-elseif strcmp(freq_split,'iaf_glm')
-    % split based on SOI identified using GLM
-    winl = 1;
-    load(fullfile(glmpth,'glm_rt_chan_fourier.mat'))
-    chan_subj = subj_soi{s};
-
-    soi = {};
-    for c = 1:length(chan_subj)
-        chan = {chan_subj{c}(1:7)};
-        soi = [soi;chan];
-        chan = {['MEG',chan_subj{c}(9:end)]};
-        soi = [soi;chan];
-    end
-    
-    cfg.channel = soi;
-    cfg.foi = f_peak(s);
-    
+soi = {};
+for c = 1:length(chan_subj)
+    chan = {chan_subj{c}(1:7)};
+    soi = [soi;chan];
+    chan = {['MEG',chan_subj{c}(9:end)]};
+    soi = [soi;chan];
 end
+
+cfg.channel = soi;
+cfg.foi = iaf;
 
 cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
 cfg.toi = -1.75:0.05:0.5;

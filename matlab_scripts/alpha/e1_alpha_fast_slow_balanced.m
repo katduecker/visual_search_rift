@@ -16,19 +16,12 @@
 % iaf_grad: identified IAF in gradiometers
 
 
-function e1_alpha_fast_slow_balanced(s,split_ta_tp)
+function e1_alpha_fast_slow_balanced(s)
 
 num_bins = 4;
 winl = 0.5;
-condi_all = {{'ni','16t'},{'ti','16t'}, {'ni','32t'},{'ti','32t'}};
+condi_all = {{'ni','16ta'},{'ti','16ta'}, {'ni','32ta'},{'ti','32ta'},{'ni','16tp'},{'ti','16tp'}, {'ni','32tp'},{'ti','32tp'}};
 
-
-
-if split_ta_tp
-    split_suf = '_ta_tp';
-else
-    split_suf = '';
-end
 
 %% settings
 pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
@@ -36,7 +29,7 @@ inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid');
 outpth = fullfile(pth,'results','meg','6 Alpha','rt_balanced');
 
 glmpth = fullfile(pth,'results','meg','9 GLM', 'glm_spec');
-addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
+addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
 
 load(fullfile(pth,'matlab_scripts/',"preproc_meg",'idx_subjoi.mat'));
 
@@ -45,8 +38,6 @@ load(fullfile(glmpth, 'glm_RT_soi_iaf_subj'))
 soi = subj_soi{s};
 time_oi = glm_time_sig;
 
-
-
 %% load data
 
 d = dir(fullfile(inpth,subj{s}));
@@ -54,36 +45,18 @@ files = {d.name};
 files(1:2) = [];
 
 
-% split into Target absent/Target present?
-
-if split_ta_tp
-    % if yes, separate trials for ta/tp
-    ta_tp = {'ta','tp'};
-else
-    % if not, just concatenate a t to the set size (in filenames) which
-    % looks for ta/tp
-    ta_tp = {'t'};
-end
-
-
 freqvec = 4:1/winl:30;
-spec_fast = zeros(length(condi_all)*length(ta_tp), length(freqvec));
+spec_fast = zeros(length(condi_all), length(freqvec));
 spec_slow = spec_fast;
 
-count_idx = 0;
 for c_idx = 1:length(condi_all)
     condi = condi_all{c_idx};
-for ti = 1:length(ta_tp)
-    count_idx = count_idx+1;
     % find relevant data files
     condi_files = zeros(length(files),1);
     for c = 1:length(condi)
-        
         condi_files = condi_files + cell2mat(cellfun(@(x) ~isempty(x),regexp(files,condi{c}),'UniformOutput',false))';
-        
     end
-    condi_files = condi_files + cell2mat(cellfun(@(x) ~isempty(x),regexp(files,[condi{2}(end-2:end-1),ta_tp{ti}]),'UniformOutput',false))';
-    condi_files = condi_files == length(condi)+1;   
+    condi_files = condi_files == length(condi);   
 
     c_files = files(condi_files);
 
@@ -181,18 +154,12 @@ for ti = 1:length(ta_tp)
     IAFfast = ft_selectdata(cfg,TFRfast);
     IAFslow = ft_selectdata(cfg,TFRslow);
 
-    spec_slow(count_idx,:) = IAFslow.powspctrm./max(IAFslow.powspctrm);
-    spec_fast(count_idx,:) = IAFfast.powspctrm./max(IAFslow.powspctrm);
+    spec_slow(c_idx,:) = IAFslow.powspctrm./max(IAFslow.powspctrm);
+    spec_fast(c_idx,:) = IAFfast.powspctrm./max(IAFslow.powspctrm);
     
 
-    mkdir(fullfile(outpth,subj{s}))
-    condname = strjoin(condi,'_');
-    
 clear IAFfast IAFslow idx_fast idx_slow data_fast data_slow I rt_block idx trl_perf
 end
-
-end
-
 save(fullfile(outpth,subj{s},'spectra_RTsplit.mat'),'spec_fast', 'spec_slow', 'freqvec')
 
 
