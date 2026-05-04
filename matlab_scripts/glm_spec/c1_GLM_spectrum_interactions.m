@@ -189,11 +189,13 @@ cov_forming_matrix = pinv(X'*X); % covariance forming matrix
 
 Y = IAF.powspctrm;      % fourier spectrum
 
+Xp = pinv(X);
+Xp_no_rt = pinv(X_no_rt);
 for c = 1:length(IAF.freq)*length(IAF.time)*length(IAF.label)
 
     Yc = Y(:,c);
     % fit model
-    model_beta(:,c) = pinv(X)*Yc;
+    model_beta(:,c) = Xp*Yc;
 
     % sum of squared errors
     var_forming_matrix = diag(cov_forming_matrix);
@@ -213,7 +215,7 @@ for c = 1:length(IAF.freq)*length(IAF.time)*length(IAF.label)
     %% effect size:
     
     % model without RT
-    beta_nort = pinv(X_no_rt)*Yc;
+    beta_nort = Xp_no_rt*Yc;
     RSS2 = sum((Yc - (X_no_rt*beta_nort)).^2);
 
     % Variance explained by each model
@@ -280,7 +282,7 @@ for n =1:num_perm
         
         Yc = shuf_Y(:,c);
         % fit model
-        model_beta_perm(:,c) = pinv(X)*Yc;
+        model_beta_perm(:,c) = Xp*Yc;
         
         % sum of squared errors
         var_forming_matrix = diag(cov_forming_matrix);
@@ -304,7 +306,7 @@ for n =1:num_perm
     
     % make sure there weren't any indexing errors
      if n>1
-        assert(~all(T_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~any(T_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
     end
     
 end

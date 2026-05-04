@@ -2,19 +2,25 @@
 % Paper 2: Alpha inhibition
 
 %% GLM RIFT ~ alpha power
-% Fit a GLM to the single-trial coherence analysis
+% Fit a GLM to the single-trial RIFT data
 
 % (c), Katharina Duecker
-% last edited, Nov-29-2024
-
-% GLM fitted for each participant
-
-
-function d1_RIFT_alpha_coh(s, which_set, which_freq)
+% last edited, 5 May 2026
 
 % Inputs
+% -s: subject ID
+% -which_set: '': all trials, 'set32': only set size 32, 'gui': only guided
+% -time_int (s): time interval for alpha power average, can be [nan, nan] if
+% using time points identified by RT GLM analysis, replace nan for fixed
+% time windows
+
+function d1_RIFT_alpha_coh(s, which_set, time_int)
+
+winl = 0.5;
+% Inputs
 % - s: subject index
-% - which_set (str), which trials to includ
+% - which_set (str), which trials to include
+
 
 pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/';
 addpath(fullfile(pth, 'fieldtrip'))
@@ -37,7 +43,17 @@ cohpth = fullfile(pth,'results','meg','8 COH single trl');
 
 inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid');
 
-%% Fill in template structure
+% load GLM results
+load(fullfile(glmrtpth, 'glm_RT_soi_iaf_subj'), 'subj_soi', 'glm_time_sig', 'iaf_glm')
+soi = subj_soi{s};
+
+% if pre-defined time_oi, take that; otherwise use GLM time points
+time_oi = zeros(1,2);
+time_oi(isnan(time_int)) = glm_time_sig(isnan(time_int));
+time_oi(~isnan(time_int)) = time_int(~isnan(time_int));
+iaf = iaf_glm(s);
+
+%% Init template structure
 
 datpth = fullfile(pth,'data');             % max filter
 mergepth = fullfile(pth,'results','meg', '2 merged edf mat'); 
@@ -65,9 +81,11 @@ data = ft_preprocessing(cfg);
 ERP = ft_timelockanalysis([], data);
 
 %% GLM Y
-% load single trial correlations
+
+% load single RIFT
 load(fullfile(cohpth,subj{s},['coh_single_trial_mcohere.mat']))
 
+% select conditions based on "which_set"
 condi = logical(condi);
 
 % get set size 32 trials
@@ -113,8 +131,10 @@ else
     
 end
 
-tot = (tot - mean(tot))';
+tot = (tot - mean(tot))';           % demean tot
 
+
+% fill RIFT response into ERP template
 coh_T = ERP;
 coh_T.avg = cohT;
 coh_T.var = cohT;
@@ -125,19 +145,20 @@ coh_D.avg = cohD;
 coh_D.var = cohD;
 coh_D.dof = ones(size(coh_D.avg));
 
-% change layout to please fieldtrip
+% change layout to please fieldtrip (otherwise combineplanar won't work)
 coh_T.avg = repmat(coh_T.avg,1,1,2);
 coh_T.time = [1, 2];
 coh_D.avg = repmat(coh_D.avg,1,1,2);
 coh_D.time = [1, 2];
 
 
-
+% combine planar
 cfg = [];
 cfg.method = 'sum';
 coh_T = ft_combineplanar(cfg,coh_T);
 coh_D = ft_combineplanar(cfg,coh_D);
 
+% select just one time point
 cfg = [];
 cfg.latency = [1 1];
 coh_T = ft_selectdata(cfg, coh_T);
@@ -145,7 +166,7 @@ coh_D = ft_selectdata(cfg, coh_D);
 
 %% alpha power
 
-% load data in same order as f3_single_trial_coh
+% load data in same order as coherence/d1_single_trial_coh
 
 d = dir(fullfile(inpth,subj{s}));
 d = {d.name};
@@ -173,7 +194,8 @@ condi_specs = {'ti','32t','tp','6067'};
 condi_check = zeros(length(behav_array),3);
 
 
-% find trigger condition
+%% Split data into conditions 
+% create array that stores the condition keys
 % store: 1: guided; 1: set 32; 1: target present; Target60 Distractor 67
 
 for c = 1:length(condi_specs)
@@ -190,37 +212,29 @@ if ~isequal(condi, condi_check)
 end
 
 
-% estimate TFR again because order of trials in coh_T is not consecutive!
-
+%% TFR of alpha power (ensures coherence and alpha power are in the same order)
 % uncombine soi to speed things up
 
 soi_uncmb = {};
-for i = 1:length(subj_soi{s})
-    soi_uncmb = [soi_uncmb; {subj_soi{s}{i}(1:7)}; {['MEG',subj_soi{s}{i}(9:end)]}];
+for i = 1:length(soi)
+    soi_uncmb = [soi_uncmb; {soi{i}(1:7)}; {['MEG',soi{i}(9:end)]}];
 end
-
-toi = -1.75:0.05:0.5;
-winl = .5;
 
 cfg = [];
 cfg.method = 'mtmconvol';
 cfg.channel = soi_uncmb;
 cfg.taper = 'hanning';
-
-if strcmp(which_freq,'alpha_band')
-    cfg.foi = f_rep; 
-elseif strcmp(which_freq, 'iaf')
-    cfg.foi = f_peak(s);
-end
+cfg.foi = iaf;
 cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
-cfg.toi = toi;
+cfg.toi = -1.75:0.05:0.5;
 cfg.keeptrials = 'yes';
-% cfg.output = 'fourier';
+cfg.output = 'fourier';
+cfg.pad = 'nextpow2';
 cfg.trials = trl_oi;
 
 TFR = ft_freqanalysis(cfg,data);
-
-
+TFR.powspctrm = abs(TFR.fourierspctrm);
+TFR = rmfield(TFR,'fourierspctrm');
 % combine planar
 cfg = [];
 cfg.method = 'sum';
@@ -230,17 +244,14 @@ TFR = ft_combineplanar(cfg,TFR);
 cfg = [];
 cfg.avgoverchan = 'yes';
 cfg.avgovertime = 'yes';
-cfg.avgoverfreq = 'yes';
-cfg.latency = [glm_time_sig(1), glm_time_sig(2)];
-cfg.avgoverfreq = 'yes';
+cfg.latency = time_oi;
 IAF = ft_selectdata(cfg,TFR);
 
-alpha_pow = IAF.powspctrm;
+alpha_pow = IAF.fourierspctrm;
 
-%% time on task model
+%% GLM: Time-On-Task
 
-const = ones(length(condi),1);
-
+const = ones(length(condi),1);  
 
 Xtot = [const,gui,tot];
 
@@ -354,13 +365,22 @@ for n =1:num_perm
     
     T_alpha_tot_H1_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y_H1);
     
+    
     % H2: top-down control
     Y_H2  = (shuf_T-shuf_D).^2;
     
     T_alpha_H2_perm(n,:) = alphaGLM(Y_H2,alpha_pow,gui);
     
-    T_alpha_tot_H2_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y_H2);  
+    T_alpha_tot_H2_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y_H2); 
     
+    
+    if n>1
+        assert(~any(T_alpha_H1_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~any(T_alpha_tot_H1_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        
+        assert(~any(T_alpha_H2_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~any(T_alpha_tot_H2_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+    end
 end
 
 
@@ -370,7 +390,7 @@ T_alpha_z_H2 = (T_alpha_H2' - mean(T_alpha_H2_perm))./std(T_alpha_H2_perm);
 T_alpha_tot_z_H1 =(T_alpha_tot_H1' - mean(T_alpha_tot_H1_perm))./std(T_alpha_tot_H1_perm);
 T_alpha_tot_z_H2 =(T_alpha_tot_H2' - mean(T_alpha_tot_H2_perm))./std(T_alpha_tot_H2_perm);
 
-save(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'_',which_freq,'.mat')),'T_tot', 'T_alpha_z_H1','T_alpha_z_H2','T_alpha_tot_z_H1','T_alpha_tot_z_H2')  
+save(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'_start_',num2str(time_oi(1)*1000),'_end_',num2str(time_oi(2)*1000),'.mat')),'T_tot_H1', 'T_tot_H2', 'T_alpha_z_H1','T_alpha_z_H2','T_alpha_tot_z_H1','T_alpha_tot_z_H2')  
 
 end
 
