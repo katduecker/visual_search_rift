@@ -306,7 +306,7 @@ for n =1:num_perm
     
     % make sure there weren't any indexing errors
      if n>1
-        assert(~any(T_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~all(T_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
     end
     
 end

@@ -247,25 +247,32 @@ cfg.avgovertime = 'yes';
 cfg.latency = time_oi;
 IAF = ft_selectdata(cfg,TFR);
 
-alpha_pow = IAF.fourierspctrm;
+alpha_pow = IAF.powspctrm;
 
 %% GLM: Time-On-Task
 
 const = ones(length(condi),1);  
 
-Xtot = [const,gui,tot];
+if strcmp(which_set,"gui")
+    Xtot = [const,tot];% cope
+    tot_contr = [0 1];       
+else
+    Xtot = [const,gui,tot];
+    % cope
+    tot_contr = [0 0 1];        
+end
 
 % H1: blanket inhibition
 Y = (coh_T.trial+coh_D.trial)./2;
 
 % T stats
-T_tot_H1 = totGLM(Xtot,Y);
+T_tot_H1 = totGLM(Xtot,tot_contr, Y);
 
 % H2: increased top-down control
 Y = (coh_T.trial-coh_D.trial).^2;
 
 % T stats
-T_tot_H2 = totGLM(Xtot,Y);
+T_tot_H2 = totGLM(Xtot, tot_contr, Y);
 
 
 %% alpha model
@@ -355,7 +362,7 @@ for n =1:num_perm
         cnt = cnt+(end_index-start_index)+1;
     end
     
-    if size(coh_T.trial,1) ~= (cnt)
+    if size(coh_T.trial,1) ~= (cnt-1)
         error('number of trials not accounted for')
     end
     
@@ -375,11 +382,11 @@ for n =1:num_perm
     
     
     if n>1
-        assert(~any(T_alpha_H1_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
-        assert(~any(T_alpha_tot_H1_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~all(T_alpha_H1_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~all(T_alpha_tot_H1_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
         
-        assert(~any(T_alpha_H2_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
-        assert(~any(T_alpha_tot_H2_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~all(T_alpha_H2_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~all(T_alpha_tot_H2_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
     end
 end
 
@@ -394,13 +401,12 @@ save(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'_start_
 
 end
 
-function T_tot = totGLM(Xtot,Y)
+function T_tot = totGLM(Xtot,tot_contr, Y)
 
     % pseudoinverse
     Xptot = pinv(Xtot);
 
-    % cope
-    tot_contr = [0 0 1];        % target vs unguided contrast
+    
     % fit model with pseudoinverse matrix
     beta_tot = Xptot*Y;
 
@@ -412,7 +418,7 @@ function T_tot = totGLM(Xtot,Y)
     res_dot = diag(res'*res);
 
     % degrees of freedom
-    dof_error = length(Y) - rank(Xtot);
+    dof_error = size(Y,1) - rank(Xtot);
 
     varres = res_dot/dof_error;
 
@@ -425,20 +431,26 @@ function T_tot = totGLM(Xtot,Y)
 end
 
 function T_alpha = alphaGLM(Y,alpha_pow,gui)
-   const = ones(size(Y,1),1);
+    const = ones(size(Y,1),1);
     T_alpha = zeros(size(Y,2),1);
     alpha_z = zscore(alpha_pow(:));
-    for c = 1:size(Y,2)
 
-       
-        Yc = Y(:,c);
+    if all(gui==0)
+        X_alpha = [const, alpha_z];
+        alpha_contr = [0 1];
+
+    else
         X_alpha = [const, gui,alpha_z];
-
-        % pseudoinverse
-        Xpalpha = pinv(X_alpha);
-
         % cope
         alpha_contr = [0 0 1];        % alpha contrast
+
+    end
+
+    % pseudoinverse
+    Xpalpha = pinv(X_alpha);
+    for c = 1:size(Y,2)
+       
+        Yc = Y(:,c);
 
         % fit model with pseudoinverse matrix
         beta_alpha = Xpalpha*Yc;
@@ -451,7 +463,7 @@ function T_alpha = alphaGLM(Y,alpha_pow,gui)
         res_dot = diag(res'*res);
 
         % degrees of freedom
-        dof_error = length(Yc) - rank(X_alpha);
+        dof_error = size(Yc,1) - rank(X_alpha);
 
         varres = res_dot/dof_error;
 
@@ -471,15 +483,22 @@ function T_tot_alpha = totalphaGLM(gui,alpha_pow,tot,Y)
     const = ones(size(Y,1),1);
     T_tot_alpha = zeros(size(Y,2),1);
     alpha_z = zscore(alpha_pow(:));
-    for c = 1:size(Y,2)
-        Yc = Y(:,c);
+    
+    if all(gui==0)
+        X_tot_alpha = [const, tot,alpha_z];
+        % cope
+        tot_alpha_contr = [0 0 1];        % target vs unguided contrast
+    else
         X_tot_alpha = [const, gui,tot,alpha_z];
-
-        % pseudoinverse
-        Xptotalpha = pinv(X_tot_alpha);
-
         % cope
         tot_alpha_contr = [0 0 0 1];        % target vs unguided contrast
+    end
+    
+    % pseudoinverse
+    Xptotalpha = pinv(X_tot_alpha);
+    
+    for c = 1:size(Y,2)
+        Yc = Y(:,c);
 
         % fit model with pseudoinverse matrix
         beta_tot_alpha = Xptotalpha*Yc;
@@ -492,7 +511,7 @@ function T_tot_alpha = totalphaGLM(gui,alpha_pow,tot,Y)
         res_dot = diag(res'*res);
 
         % degrees of freedom
-        dof_error = length(Y) - rank(X_tot_alpha);
+        dof_error = size(Yc,1) - rank(X_tot_alpha);
 
         varres = res_dot/dof_error;
 

@@ -11,6 +11,7 @@
 
 function c2_GLM_spec_stats_interactions(end_time)
 
+winl = 0.5;
 suf = '_interactions_piv';
 %% paths
 addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
@@ -38,7 +39,6 @@ file(1:2) = [];
 load(fullfile(inpth,subj{s},file{1}))
 
 % TFR
-winl=1;
 cfg = [];
 cfg.method = 'mtmconvol';
 cfg.channel = 'MEGGRAD';
