@@ -104,8 +104,10 @@ for s = 1:length(subj)
     SPEC_T = ft_selectdata(cfg, SPEC_T);
     subj_soi{s} = labels(SPEC_T.powspctrm < 0);
 end
-subj_soi(cell2mat(cellfun(@isempty, subj_soi, 'UniformOutput', false))) = {chan_rep};
 
+% 2 participants
+subj_soi(cell2mat(cellfun(@isempty, subj_soi, 'UniformOutput', false))) = {chan_rep};
+save(fullfile(outpth, 'glm_RT_soi_iaf_subj'), 'subj_soi')
 %% Compute Cohen's f² grand average
 effsize_cohF = cell(1,length(subj));
 for s = 1:length(subj)
@@ -120,7 +122,6 @@ cfg.parameter = 'powspctrm';
 effsize = ft_freqgrandaverage(cfg, effsize_cohF{:});
 
 cfg = [];
-cfg.latency = [-1 0];
 effsize_lim = ft_selectdata(cfg, effsize);
 
 % Cohen's f² TFR averaged over each subject's SOI
@@ -142,33 +143,13 @@ cohF_avg_TFR = squeeze(mean(cohF_subj, 1));
 col_time = [27, 158, 119; 217, 95, 2]./255;
 col_freq = [117, 112, 179; 231, 41, 138]./255;
 
-fig = figure('Position',[0 0 1940/1.5 1080/2]);
+fig = figure('Position',[0 0 1940 1080/2.5]);
 set(gcf, 'DefaultAxesFontSize', 11);
 
-% --- Jackknife: time bounds ---
-subplot(2,4,1)
-scatter(ones(1,length(t1)), t1, t1_count.*30, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_time(1,:))
-hold on
-scatter(ones(1,length(t2)).*1.5, t2, t2_count.*30, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_time(2,:))
-xlim([0.75, 1.75])
-xticks([1, 1.5])
-xticklabels({'onset', 'offset'})
-ylabel('time (s)')
-title('jackknife: time')
 
-% --- Jackknife: frequency bounds ---
-subplot(2,4,2)
-scatter(ones(1,length(f1)), f1, f1_count.*30, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_freq(1,:))
-hold on
-scatter(ones(1,length(f2)).*1.5, f2, f2_count.*30, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_freq(2,:))
-xlim([0.75, 1.75])
-xticks([1, 1.5])
-xticklabels({'lower bound', 'upper bound'})
-ylabel('frequency (Hz)')
-title('jackknife: frequency')
 
 % --- Cohen's f² topo ---
-ax_cohF_topo = subplot(2,4,3);
+ax_cohF_topo = subplot(1,6,1);
 cfg = [];
 cfg.parameter = 'powspctrm';
 cfg.highlight = 'on';
@@ -184,17 +165,40 @@ colormap(ax_cohF_topo, cm(length(cm)/2:end,:))
 title('Cohen''s f² (RT)')
 
 % --- Cohen's f² TFR (subject SOI averaged) ---
-ax_cohF_tfr = subplot(2,4,4:8);
+ax_cohF_tfr = subplot(1,6,2:4);
 imagesc(SPEC.time, SPEC.freq, cohF_avg_TFR)
 axis xy
-xlim([-1 0])
-xlabel('time (s)'); xticks(-1:0.5:0)
+xlabel('time (s)'); xticks(-1:0.5:0.5)
 ylabel('frequency (Hz)'); yticks(10:10:30)
 title('Cohen''s f² TFR (subject SOI avg)')
 cb = colorbar;
 cb.Label.String = 'Cohen''s f²';
 box off
 colormap(ax_cohF_tfr, cm(length(cm)/2:end,:))
+
+% --- Jackknife: time bounds ---
+subplot(1,6,5)
+scatter(ones(1,length(t1)), t1, t1_count.*20, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_time(1,:))
+hold on
+scatter(ones(1,length(t2)).*1.5, t2, t2_count.*20, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_time(2,:))
+xlim([0.75, 1.75])
+xticks([1, 1.5])
+ylim([-1.5, 0.5])
+yticks(-1.5:0.5:0.5)
+xticklabels({'onset', 'offset'})
+ylabel('time (s)')
+title('jackknife: time')
+
+% --- Jackknife: frequency bounds ---
+subplot(1,6,6)
+scatter(ones(1,length(f1)), f1, f1_count.*20, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_freq(1,:))
+hold on
+scatter(ones(1,length(f2)).*1.5, f2, f2_count.*20, 'filled', 'MarkerFaceAlpha',0.5, 'MarkerFaceColor', col_freq(2,:))
+xlim([0.75, 1.75])
+xticks([1, 1.5])
+xticklabels({'lower bound', 'upper bound'})
+ylabel('frequency (Hz)')
+title('jackknife: frequency')
 
 print(fig, fullfile(plotpth, ['fig1_jackknife_cohensF', suf]), '-dsvg')
 print(fig, fullfile(plotpth, ['fig1_jackknife_cohensF', suf]), '-dpng')
@@ -206,18 +210,27 @@ print(fig, fullfile(plotpth, ['fig1_jackknife_cohensF', suf]), '-dpng')
 proj_min_subj = zeros(length(subj), length(SPEC.freq));
 proj_max_subj = zeros(length(subj), length(SPEC.freq));
 
+iaf_glm = zeros(length(subj),1);
 for s = 1:length(subj)
     load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'proj_spec_min_rt','proj_spec_max_rt')
     chan_idx = ismember(SPEC.label, subj_soi{s});
 
     if sum(chan_idx) > 1
-        proj_min_subj(s,:) = squeeze(mean(mean(proj_spec_min_rt(chan_idx,:,t_proj_start:t_proj_end),3),1));
         proj_max_subj(s,:) = squeeze(mean(mean(proj_spec_max_rt(chan_idx,:,t_proj_start:t_proj_end),3),1));
+        proj_min_subj(s,:) = squeeze(mean(mean(proj_spec_min_rt(chan_idx,:,t_proj_start:t_proj_end),3),1));
+        proj_max_subj(s,:) = proj_max_subj(s,:)./max(proj_min_subj(s,:));
+        proj_min_subj(s,:) = proj_min_subj(s,:)./max(proj_min_subj(s,:));
+        
     else
         proj_min_subj(s,:) = squeeze(mean(proj_spec_min_rt(chan_idx,:,t_proj_start:t_proj_end),3));
         proj_max_subj(s,:) = squeeze(mean(proj_spec_max_rt(chan_idx,:,t_proj_start:t_proj_end),3));
+        proj_max_subj(s,:) = proj_max_subj(s,:)./max(proj_min_subj(s,:));
+        proj_min_subj(s,:) = proj_min_subj(s,:)./max(proj_min_subj(s,:));
     end
+    [~, p] = max(proj_max_subj(s, :));
+    iaf_glm(s) = SPEC.freq(p);
 end
+save(fullfile(outpth, 'glm_RT_soi_iaf_subj'), 'iaf_glm', 'glm_time_sig', '-append')
 
 proj_min_avg = mean(proj_min_subj, 1);
 proj_max_avg = mean(proj_max_subj, 1);
@@ -259,11 +272,11 @@ ToT_grand = ft_freqgrandaverage(cfg, ToT_freq_struct{:});
 %% FIGURE 2: RT main effect | Projected spectra | Time-on-task
 %% ============================================================
 
-fig = figure('Position',[0 0 1940/1.5 1080]);
+fig = figure('Position',[0 0 1940 1080]);
 set(gcf, 'DefaultAxesFontSize', 11);
 
-% ===== Row 1: RT main effect =====
-subplot(3,4,1)
+% ===== RT main effect =====
+subplot(2,6,1)
 cfg = [];
 cfg.parameter = 'stat';
 cfg.zlim = 'maxabs';
@@ -279,7 +292,7 @@ ft_topoplotTFR(cfg, stat_occi_RT)
 colormap(cm)
 title('RT main')
 
-subplot(3,4,2:4)
+subplot(2,4,2:3)
 imagesc(stat_occi_RT.time, stat_occi_RT.freq, stat_T_RT)
 hold on
 draw_outline_fn(stat_occi_RT.time, stat_occi_RT.freq, mask_line_vert_RT, mask_line_horz_RT)
@@ -293,8 +306,8 @@ cb.Label.String = 'T-value';
 box off
 colormap(cm)
 
-% ===== Row 2: Projected spectra (line plots) =====
-subplot(3,4,5:6)
+% ===== Projected spectra (line plots) =====
+subplot(2,4,4)
 plot(SPEC.freq, proj_min_avg, 'LineWidth', 1.5, 'Color', [8, 115, 59]./255)
 hold on
 plot(SPEC.freq, proj_max_avg, 'LineWidth', 1.5, 'Color', 'k')
@@ -305,16 +318,9 @@ legend('fast RT', 'slow RT', 'Location', 'best')
 box off
 title('projected spectra (subject SOI avg)')
 
-subplot(3,4,7:8)
-plot(SPEC.freq, proj_diff_avg, 'LineWidth', 1.5, 'Color', 'k')
-ylabel('slow - fast')
-xlabel('frequency (Hz)')
-xlim([4 30])
-box off
-title('difference (slow - fast)')
 
 % ===== Row 3: Time-on-task =====
-subplot(3,4,9)
+subplot(2,4,5)
 cfg = [];
 cfg.parameter = 'powspctrm';
 cfg.zlim = 'maxabs';
@@ -330,7 +336,7 @@ ft_topoplotTFR(cfg, ToT_grand)
 colormap(cm)
 title('time-on-task')
 
-subplot(3,4,10:12)
+subplot(2,4,6:7)
 imagesc(SPEC.time, SPEC.freq, ToT_avg_TFR)
 axis xy
 xlim([-1 0])
@@ -366,12 +372,24 @@ for s = 1:length(subj)
     end
 end
 
+
+% VIFs
+VIF_all = zeros(length(subj), length(regr_names)-1);
+for s = 1:length(subj)
+    load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'VIF')
+    VIF_all(s,:) = VIF;
+end
+
+mean_VIF = mean(VIF_all);
+std_VIF = std(VIF_all);
+
+
 n_regr = length(regr_idx_to_plot);
 n_per_row = 4;
 n_rows = ceil(n_regr / n_per_row);
-n_cols = n_per_row * 3;
+n_cols = n_per_row * 4;
 
-fig = figure('Position',[0 0 1940 1080/3*n_rows]);
+fig = figure('Position',[0 0 1940 1080/2]);
 set(gcf, 'DefaultAxesFontSize', 10);
 
 for k = 1:n_regr
@@ -394,7 +412,7 @@ for k = 1:n_regr
 
     row = ceil(k/n_per_row);
     col_in_row = mod(k-1, n_per_row);
-    base_col = col_in_row * 3 + 1;
+    base_col = col_in_row * 4 + 1;
 
     subplot(n_rows, n_cols, (row-1)*n_cols + base_col)
     cfg = [];
@@ -409,7 +427,7 @@ for k = 1:n_regr
     colormap(cm)
     title(regr_names{i})
 
-    subplot(n_rows, n_cols, (row-1)*n_cols + (base_col+1):(row-1)*n_cols + (base_col+2))
+    subplot(n_rows, n_cols, (row-1)*n_cols + (base_col+1):(row-1)*n_cols + (base_col+3))
     imagesc(SPEC.time, SPEC.freq, tfr_avg)
     axis xy
     xlabel('time (s)'); xticks(-1:0.5:0)
@@ -417,11 +435,23 @@ for k = 1:n_regr
     title('')
     cb = colorbar;
     if max(abs(tfr_avg(:))) > 0
-        caxis([-max(abs(tfr_avg(:))), max(abs(tfr_avg(:)))])
+        caxis([round(-max(abs(tfr_avg(:))),1), round(max(abs(tfr_avg(:))),1)]);
     end
+    
+    cb.Ticks = [round(-max(abs(tfr_avg(:))),1), 0, round(max(abs(tfr_avg(:))),1)];
     box off
     colormap(cm)
 end
+
+subplot(n_rows, n_cols, (row-1)*n_cols + (base_col+3)+1:n_rows*n_cols)
+bar(1:length(mean_VIF), mean_VIF, 'FaceColor', 'k', 'FaceAlpha', 0.25)
+hold on
+er = errorbar(1:length(mean_VIF), mean_VIF, std_VIF, std_VIF);
+er.Color = 'k';
+er.LineStyle = 'none';
+xticklabels(regr_names(2:end))
+xtickangle(45)
+ylabel('VIF')
 
 print(fig, fullfile(plotpth, ['supp_other_reg_interactions', suf]), '-dpng')
 print(fig, fullfile(plotpth, ['supp_other_reg_interactions', suf]), '-dsvg')

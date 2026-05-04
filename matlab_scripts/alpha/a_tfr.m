@@ -29,7 +29,7 @@
 function a_tfr(s)
 
 toi = -1.75:0.05:0.5;
-winl = 1;
+winl = 0.5;
 %% settings
 pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 
@@ -37,7 +37,7 @@ inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid','clean data
 outpth = fullfile(pth,'results','meg','6 Alpha', 'pow');
 
 rmpath('/rds/projects/2018/jenseno-entrainment/fieldtrip')
-addpath('/rds/projects/j/jenseno-visual-search-rft/fieldtrip')
+addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
 
 load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
@@ -62,6 +62,7 @@ cfg.foi = 4:1/winl:30;
 cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
 cfg.toi = toi;
 cfg.keeptrials = 'yes';
+cfg.pad = 'nextpow2';
 TFR = ft_freqanalysis(cfg,data);
 
 cfg = [];

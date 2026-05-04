@@ -17,6 +17,7 @@ function c1_GLM_spectrum_indv_fourier(s)
 % Input:
 % -s: subject index
 
+winl = 0.5;
 %% paths
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment'))
 addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
@@ -109,7 +110,7 @@ end
 
 %% Load TFR of fourier
 
-load(fullfile(alphapth,subj{s},'data_fourier_winl_10.mat'),'TFR')
+load(fullfile(alphapth,subj{s},['data_fourier_winl_',num2str(winl*10),'.mat']),'TFR')
 
 % combine planar
 cfg = [];

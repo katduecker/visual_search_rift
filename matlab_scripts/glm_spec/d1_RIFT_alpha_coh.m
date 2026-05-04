@@ -29,6 +29,9 @@ outpth = fullfile(pth,'results','meg','9 GLM', 'glm_rift');
 mkdir(fullfile(outpth,subj{s}))
 glmrtpth = fullfile(pth,'results','meg','9 GLM', 'glm_spec');
 
+load(fullfile(glmrtpth, 'glm_RT_soi_iaf_subj'))
+soi_glm = subj_soi{s};
+soi_iaf = iaf_glm(s); 
 
 cohpth = fullfile(pth,'results','meg','8 COH single trl');
 
@@ -186,7 +189,6 @@ if ~isequal(condi, condi_check)
     error('order of trials not the same!')
 end
 
-load(fullfile(glmrtpth,'glm_rt_chan_fourier.mat'))
 
 % estimate TFR again because order of trials in coh_T is not consecutive!
 
@@ -198,7 +200,7 @@ for i = 1:length(subj_soi{s})
 end
 
 toi = -1.75:0.05:0.5;
-winl = 1;
+winl = .5;
 
 cfg = [];
 cfg.method = 'mtmconvol';

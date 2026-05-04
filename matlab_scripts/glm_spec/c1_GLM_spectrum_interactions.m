@@ -109,7 +109,7 @@ end
 
 %% Load TFR of fourier
 
-load(fullfile(alphapth,subj{s},'data_fourier_winl_10.mat'),'TFR')
+load(fullfile(alphapth,subj{s},['data_fourier_winl_',num2str(winl*10),'.mat']),'TFR')
 
 % combine planar
 cfg = [];

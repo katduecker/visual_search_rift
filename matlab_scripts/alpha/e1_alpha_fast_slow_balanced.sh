@@ -12,6 +12,4 @@ set -eu
 module purge; module load bluebear
 module load MATLAB/2019b
 
-for i in {1..4}; do
-	matlab -nodisplay -r "run /rds/homes/d/dueckerk/startup.m, e1_alpha_fast_slow_balanced(${SLURM_ARRAY_TASK_ID},$i,1,1,'rift'), quit"
-done
+matlab -nodisplay -r "run /rds/homes/d/dueckerk/startup.m, e1_alpha_fast_slow_balanced(${SLURM_ARRAY_TASK_ID},1), quit"
