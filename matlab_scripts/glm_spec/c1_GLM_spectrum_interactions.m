@@ -5,7 +5,7 @@
 % Fit a GLM to the fourier Spectrum
 
 % (c), Katharina Duecker
-% last edited, Oct-5-2025
+% last edited, 4 May 2026
 
 % Code based on Quinn et al., The GLM-spectrum: [...], 2024, Imaging
 % Neuroscience
@@ -17,7 +17,8 @@ function c1_GLM_spectrum_interactions(s)
 % Input:
 % -s: subject index
 
-winl=0.5;
+winl=0.5;        % window length
+
 %% paths
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment'))
 addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
@@ -36,11 +37,13 @@ mkdir(outpth,subj{s})
 load(fullfile(pth,'matlab_scripts','coherence','occi_grad.mat'))        % load occipital sensors
 
 %% Load trial data 
+
+
 d = dir(fullfile(inpth,subj{s}));
 file = {d.name};
 file(1:2) = [];
 
-% load RT, tot and slouch
+% load RT, tot and slouch (all trials)
 load(fullfile(inpth,subj{s},file{1}),'behav_array','dist_z_array')
 
 % extract specs condition
@@ -63,7 +66,7 @@ end
 %% Code conditions and prepare factors for design matrix
 
 % combination conditions
-condi_comb = [[0,0,0];[0,0,1];[0,1,0];[0,1,1];[1,0,0];[1,0,1];[1,1,0];[1,1,1]];
+condi_comb = [[0,0,0];[0,0,1];[0,1,0];[1,0,0];[0,1,1];[1,0,1];[1,1,0];[1,1,1]];
 
 rt = [behav_array{:,3}]';
 
@@ -77,7 +80,7 @@ tot = tot'-mean(tot);
 dist_z_array = dist_z_array .* sign(dist_z_array);
 dist_z = dist_z_array - mean(dist_z_array);
 
-%% zscore RT within condition to address multicollinearity
+% zscore RT within condition to address multicollinearity
 
 for c = 1:length(condi_comb)
     cur_cond = zeros(size(condi,1),1);
@@ -116,8 +119,6 @@ load(fullfile(alphapth,subj{s},['data_fourier_winl_',num2str(winl*10),'.mat']),'
 cfg = [];
 cfg.method = 'sum';
 TFR = ft_combineplanar(cfg,TFR);
-
-% select time of interest
 cfg = [];
 cfg.latency = [-1.5 .5];
 IAF = ft_selectdata(cfg,TFR);
@@ -172,7 +173,7 @@ if all(~(abs(VIF-VIF2)<1e-4)')
 end
 
 
-% for effect size, estimate model without RT;
+% for effect size, estimate model without any regressors related to RT;
 X_no_rt = X(:,[1:4,6:7]);
 
 % prepare empty matrices
@@ -184,9 +185,9 @@ CohensF_rt = proj_spec_min_rt; % effect size
 
 varcope = model_T;    % variance of contrast
 
-cov_forming_matrix = pinv(X'*X); % residual matrix
+cov_forming_matrix = pinv(X'*X); % covariance forming matrix
 
-Y = IAF.powspctrm;      % fourier
+Y = IAF.powspctrm;      % fourier spectrum
 
 for c = 1:length(IAF.freq)*length(IAF.time)*length(IAF.label)
 
@@ -300,6 +301,11 @@ for n =1:num_perm
     model_T_perm = model_beta_perm./sqrt(varcope);
     
     T_perm(n,:,:,:,:) = model_T_perm;
+    
+    % make sure there weren't any indexing errors
+     if n>1
+        assert(~all(T_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+    end
     
 end
 toc
