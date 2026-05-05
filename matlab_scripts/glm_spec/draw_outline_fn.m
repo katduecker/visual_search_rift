@@ -1,47 +1,45 @@
 function draw_outline_fn(time_ax, freq_ax, mask)
-% Draw outline around the True regions of mask, on the current axes.
-% time_ax: 1×nT vector of time bin centers
-% freq_ax: 1×nF vector of frequency bin centers
-% mask:    nF×nT logical (frequency × time, matching imagesc convention)
+% Draw outlines around contiguous True regions in mask.
+% time_ax: 1×nT bin centers
+% freq_ax: 1×nF bin centers
+% mask:    nF×nT logical (rows = freq, cols = time, matching imagesc convention after axis xy)
 
-if ~any(mask(:))
-    return
-end
+if ~any(mask(:)), return; end
 
-% Half bin widths (assume regular spacing; use first interval if not)
-dt = mean(diff(time_ax))/2;
-df = mean(diff(freq_ax))/2;
+% Force row vectors
+time_ax = time_ax(:)';
+freq_ax = freq_ax(:)';
 
-% Pad mask with zeros around the edges so we catch boundary transitions
-m = false(size(mask) + 2);
-m(2:end-1, 2:end-1) = mask;
+% Half bin widths from the actual axes
+dt = mean(diff(time_ax)) / 2;
+df = mean(diff(freq_ax)) / 2;
 
-% For each True cell in original mask, check its 4 neighbours.
-% If a neighbour is False (or off-edge), draw the corresponding edge.
 [nF, nT] = size(mask);
+
 for fi = 1:nF
     for ti = 1:nT
-        if ~mask(fi, ti)
-            continue
-        end
-        tc = time_ax(ti);
-        fc = freq_ax(fi);
+        if ~mask(fi, ti), continue; end
 
-        % Top edge (towards higher freq) - neighbour at fi+1
-        if ~m(fi+2, ti+1)
-            plot([tc-dt, tc+dt], [fc+df, fc+df], 'k', 'LineWidth', 1.5)
+        tL = time_ax(ti) - dt;   % left edge of this bin in time
+        tR = time_ax(ti) + dt;   % right edge
+        fB = freq_ax(fi) - df;   % bottom edge in freq
+        fT = freq_ax(fi) + df;   % top edge
+
+        % Bottom edge: draw if the cell below (lower freq) is outside cluster or off-grid
+        if fi == 1 || ~mask(fi-1, ti)
+            line([tL, tR], [fB, fB], 'Color', 'k', 'LineWidth', 1.5)
         end
-        % Bottom edge (towards lower freq) - neighbour at fi-1
-        if ~m(fi, ti+1)
-            plot([tc-dt, tc+dt], [fc-df, fc-df], 'k', 'LineWidth', 1.5)
+        % Top edge
+        if fi == nF || ~mask(fi+1, ti)
+            line([tL, tR], [fT, fT], 'Color', 'k', 'LineWidth', 1.5)
         end
-        % Right edge (towards later time) - neighbour at ti+1
-        if ~m(fi+1, ti+2)
-            plot([tc+dt, tc+dt], [fc-df, fc+df], 'k', 'LineWidth', 1.5)
+        % Left edge
+        if ti == 1 || ~mask(fi, ti-1)
+            line([tL, tL], [fB, fT], 'Color', 'k', 'LineWidth', 1.5)
         end
-        % Left edge (towards earlier time) - neighbour at ti-1
-        if ~m(fi+1, ti)
-            plot([tc-dt, tc+dt*0], [fc-df, fc+df], 'k', 'LineWidth', 1.5)
+        % Right edge
+        if ti == nT || ~mask(fi, ti+1)
+            line([tR, tR], [fB, fT], 'Color', 'k', 'LineWidth', 1.5)
         end
     end
 end
