@@ -116,7 +116,12 @@ cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
 cfg.toi = -1.75:0.05:0.5;
 cfg.keeptrials = 'yes';
 cfg.taper = 'hanning';
+cfg.output = 'fourier';
+cfg.pad = 'nextpow2';
 TFR = ft_freqanalysis(cfg,data);
+
+TFR.powspctrm = abs(TFR.fourierspctrm);
+TFR = rmfield(TFR, 'fourierspctrm');
 
 % combine planar
 cfg = [];

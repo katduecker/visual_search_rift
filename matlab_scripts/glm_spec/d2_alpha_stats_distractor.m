@@ -9,11 +9,9 @@
 
 clear all; close all; clc;
 
-which_set = 'gui';
-
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
 
-
+which_set = 'gui';
 pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 addpath(fullfile(pth,'fieldtrip'))
 ft_defaults;
@@ -61,7 +59,7 @@ cfg.highlight = 'on';
 cfg.comment = 'no';
 cfg.highlightsize = 15;
 for s = 1:length(subj)
-    load(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set,'.mat')))
+    load(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set,'_start_-1000_end_400.mat')))
     
     glm_alpha = corrT; 
     glm_alpha.avg(:,1) = T_alpha_z;

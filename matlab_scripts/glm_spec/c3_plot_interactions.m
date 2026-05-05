@@ -239,7 +239,7 @@ proj_diff_avg = mean(proj_max_subj - proj_min_subj, 1);
 %% Build outline arrays for the RT main TFR (averaged over chan_rep)
 
 mask_RT = squeeze(logical(mean(stat_occi_RT.mask(ismember(stat_occi_RT.label,chan_rep),:,:))));
-[B, L] = bwboundaries(mask_RT.*255, 'noholes');
+stat_T_RT = squeeze(mean(stat_occi_RT.stat(ismember(stat_occi_RT.label, chan_rep), :, :)));
 
 
 %% Compute time-on-task TFR (regressor 6) averaged over each subject's SOI
@@ -292,10 +292,7 @@ title('RT main')
 subplot(2,4,2:3)
 imagesc(stat_occi_RT.time, stat_occi_RT.freq, stat_T_RT)
 hold on
-for k=1:length(B)
-    boundary = B{k};
-    plot(stat_occi_RT.freq(boundary(:,1)), stat_occi_RT.time(boundary(:,2)), 'k', 'LineWidth',2)
-end
+draw_outline_fn(stat_occi_RT.time, stat_occi_RT.freq, mask_RT)
 axis xy
 xlabel('time (s)'); xticks(-1:0.5:0)
 ylabel('frequency (Hz)'); yticks(10:10:30)

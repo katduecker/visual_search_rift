@@ -34,7 +34,7 @@ avg_cohD_low = zeros(length(subj),4,1001);
 timevec = linspace(-0.5,0.5,1001);
 
 for s = 1:length(subj)
-    load(fullfile(cohpth,subj{s},'balanced_split_iaf_glm_-1000_-50_4_blocksfirws_twopass.mat'))
+    load(fullfile(cohpth,subj{s},'balanced_split_-1000_to_400.mat'))
     
     avg_cohT_high(s,:,:) = cohT_high(:,2000:3000);
     avg_cohD_high(s,:,:) = cohD_high(:,2000:3000);

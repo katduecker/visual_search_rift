@@ -27,7 +27,7 @@ load(fullfile(cohpth,'RIFT_balanced_split_glm_H1.mat'))
 
 lwidth = 3;
 timevec = linspace(-0.5,0.5,1001);
-fig = figure('Position',[0 0 1920/2.5 1080]);
+fig = figure('Position',[0 -100 1920/2.5 1080]);
 
 subplot(321)
 shadedErrorBar(timevec,squeeze(avg_cohT_high(:,2,:)),{@mean, @std},'lineProps',{'Color',col_palette(1,:),'markerfacecolor',col_palette(1,:)});
@@ -115,7 +115,7 @@ load(fullfile(pth,'matlab_scripts/',"preproc_meg/",'idx_subjoi.mat'));
 
 subj_hits = zeros(length(subj),2);
 for s = 1:length(subj)
-    load(fullfile(cohpth,subj{s},'balanced_split_iaf_glm_-1000_-50_4_blocksfirws_twopass.mat'), 'hits_high', 'hits_low')
+    load(fullfile(cohpth,subj{s},'balanced_split_-1000_to_400.mat'), 'hits_high', 'hits_low')
     subj_hits(s,1) = sum(hits_high)/length(hits_high);
     subj_hits(s,2) = sum(hits_low)/length(hits_low);
 end

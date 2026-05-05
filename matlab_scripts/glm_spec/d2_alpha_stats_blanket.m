@@ -9,8 +9,7 @@
 
 clear all; close all; clc;
 
-which_set = 'gui';
-which_freq = 'iaf';
+which_set = 'set32';
 
 % addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
 % ft_defaults;
@@ -62,7 +61,7 @@ cfg.highlight = 'on';
 cfg.comment = 'no';
 cfg.highlightsize = 15;
 for s = 1:length(subj)
-    load(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'_',which_freq,'.mat')))
+    load(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'_start_-1000_end_400.mat')))
     
     glm_alpha = corrT; 
     glm_alpha.avg(:,1) = T_alpha_z_H1;
@@ -174,6 +173,6 @@ cb.Ticks = -3:3:3;
 cb.Label.String = 'zscore';
 title('RIFTavg - alpha + tot');
 
-print(fig,fullfile(plotpth,['blanket_glm_coh_MEGGRAD_', which_set,'_', which_freq]),'-dsvg')
-print(fig,fullfile(plotpth,['blanket_glm_coh_MEGGRAD_', which_set,'_', which_freq]),'-dpng')
+print(fig,fullfile(plotpth,['blanket_glm_coh_MEGGRAD_', which_set]),'-dsvg')
+print(fig,fullfile(plotpth,['blanket_glm_coh_MEGGRAD_', which_set]),'-dpng')
 

@@ -2,36 +2,58 @@
 % Paper 2: Alpha inhibition
 
 %% GLM RIFT ~ alpha power
-% Fit a GLM to the single-trial coherence analysis
+% Fit a GLM to the single-trial RIFT data
 
 % (c), Katharina Duecker
-% last edited, Nov-29-2024
-
-% GLM fitted for each participant
-
-
-function d1_RIFT_alpha_coh_distractor(s, which_set, which_freq)
+% last edited, 5 May 2026
 
 % Inputs
+% -s: subject ID
+% -which_set: '': all trials, 'set32': only set size 32, 'gui': only guided
+% -time_int (s): time interval for alpha power average, can be [nan, nan] if
+% using time points identified by RT GLM analysis, replace nan for fixed
+% time windows
+
+function d1_RIFT_alpha_coh_distractor(s, which_set, time_init)
+
+winl = 0.5;
+% Inputs
 % - s: subject index
-% - set32 (bool) only set size 32 trials
+% - which_set (str), which trials to include
+
+
 pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/';
 addpath(fullfile(pth, 'fieldtrip'))
 ft_defaults;
 
 load(fullfile(pth,'matlab_scripts/',"preproc_meg",'idx_subjoi.mat'));
+
+
 alphapth = fullfile(pth,'results','meg','6 Alpha','pow');
 soipth = fullfile(alphapth,'iaf_soi');
 outpth = fullfile(pth,'results','meg','9 GLM', 'glm_rift');
 mkdir(fullfile(outpth,subj{s}))
 glmrtpth = fullfile(pth,'results','meg','9 GLM', 'glm_spec');
 
+load(fullfile(glmrtpth, 'glm_RT_soi_iaf_subj'))
+soi_glm = subj_soi{s};
+soi_iaf = iaf_glm(s); 
 
 cohpth = fullfile(pth,'results','meg','8 COH single trl');
 
 inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid');
 
-%% Fill in template structure
+% load GLM results
+load(fullfile(glmrtpth, 'glm_RT_soi_iaf_subj'), 'subj_soi', 'glm_time_sig', 'iaf_glm')
+soi = subj_soi{s};
+
+% if pre-defined time_oi, take that; otherwise use GLM time points
+time_oi = zeros(1,2);
+time_oi(isnan(time_init)) = glm_time_sig(isnan(time_init));
+time_oi(~isnan(time_init)) = time_init(~isnan(time_init));
+iaf = iaf_glm(s);
+
+%% Init template structure
 
 datpth = fullfile(pth,'data');             % max filter
 mergepth = fullfile(pth,'results','meg', '2 merged edf mat'); 
@@ -59,78 +81,66 @@ data = ft_preprocessing(cfg);
 ERP = ft_timelockanalysis([], data);
 
 %% GLM Y
-% load single trial correlations
+
+% load single RIFT
 load(fullfile(cohpth,subj{s},['coh_single_trial_mcohere.mat']))
 
+% select conditions based on "which_set"
 condi = logical(condi);
 
-% get set size 32 trials
+
+
+% get set size 32 trials & guided (always guided because this is distractor
+% suppression
+
 if strcmp(which_set, 'set32')
-    trl_oi = condi(:,2);
-    tot = tot(condi(:,2));
-    cohT = cohT(condi(:,2),:);
-    cohD = cohD(condi(:,2),:);
-    condi = condi(condi(:,2),:);
+    trl_oi = (condi(:,1) + condi(:,2)) == 2;
+    tot = tot(trl_oi);
+    cohD = cohD(trl_oi);
+    condi = condi(trl_oi);
     
 elseif strcmp(which_set, 'set16')
-    trl_oi = ~condi(:,2);
-    tot = tot(~condi(:,2));
-    cohT = cohT(~condi(:,2),:);
-    cohD = cohD(~condi(:,2),:);
-    condi = condi(~condi(:,2),:);
-
-elseif strcmp(which_set, 'gui')
+    trl_oi = (condi(:,1) + ~condi(:,2)) == 2;
+    tot = tot(trl_oi);
+    cohD = cohD(trl_oi);
+    condi = condi(trl_oi);
+else
+    % select only guided
     trl_oi = condi(:,1);
     tot = tot(condi(:,1));
     cohT = cohT(condi(:,1),:);
     cohD = cohD(condi(:,1),:);
     condi = condi(condi(:,1),:);
     
-elseif strcmp(which_set, 'ungui')
-    trl_oi = ~condi(:,1);
-    tot = tot(~condi(:,1));
-    cohT = cohT(~condi(:,1),:);
-    cohD = cohD(~condi(:,1),:);
-    condi = condi(~condi(:,1),:);
-    
-else
-    trl_oi = logical(ones(length(condi),1));
     
 end
 
-tot = (tot - mean(tot))';
+tot = (tot - mean(tot))';           % demean tot
 
-coh_T = ERP;
-coh_T.avg = cohT;
-coh_T.var = cohT;
-coh_T.dof = ones(size(coh_T.avg));
 
 coh_D = ERP;
 coh_D.avg = cohD;
 coh_D.var = cohD;
 coh_D.dof = ones(size(coh_D.avg));
 
-% change layout to please fieldtrip
-coh_T.avg = repmat(coh_T.avg,1,1,2);
-coh_T.time = [1, 2];
+% change layout to please fieldtrip (otherwise combineplanar won't work)
 coh_D.avg = repmat(coh_D.avg,1,1,2);
 coh_D.time = [1, 2];
 
 
-
+% combine planar
 cfg = [];
 cfg.method = 'sum';
-coh_T = ft_combineplanar(cfg,coh_T);
 coh_D = ft_combineplanar(cfg,coh_D);
 
+% select just one time point
 cfg = [];
 cfg.latency = [1 1];
-coh_T = ft_selectdata(cfg, coh_T);
 coh_D = ft_selectdata(cfg, coh_D);
 
 %% alpha power
 
-% load data in same order as f3_single_trial_coh
+% load data in same order as coherence/d1_single_trial_coh
 
 d = dir(fullfile(inpth,subj{s}));
 d = {d.name};
@@ -158,7 +168,8 @@ condi_specs = {'ti','32t','tp','6067'};
 condi_check = zeros(length(behav_array),3);
 
 
-% find trigger condition
+%% Split data into conditions 
+% create array that stores the condition keys
 % store: 1: guided; 1: set 32; 1: target present; Target60 Distractor 67
 
 for c = 1:length(condi_specs)
@@ -174,40 +185,30 @@ if ~isequal(condi, condi_check)
     error('order of trials not the same!')
 end
 
-load(fullfile(glmrtpth,'glm_rt_chan_fourier.mat'))
 
-% estimate TFR again because order of trials in coh_T is not consecutive!
-
+%% TFR of alpha power (ensures coherence and alpha power are in the same order)
 % uncombine soi to speed things up
 
 soi_uncmb = {};
-for i = 1:length(subj_soi{s})
-    soi_uncmb = [soi_uncmb; {subj_soi{s}{i}(1:7)}; {['MEG',subj_soi{s}{i}(9:end)]}];
+for i = 1:length(soi)
+    soi_uncmb = [soi_uncmb; {soi{i}(1:7)}; {['MEG',soi{i}(9:end)]}];
 end
-
-toi = -1.75:0.05:0.5;
-winl = 1;
 
 cfg = [];
 cfg.method = 'mtmconvol';
 cfg.channel = soi_uncmb;
 cfg.taper = 'hanning';
-if strcmp(which_freq,'alpha_band')
-    cfg.foi = f_rep; 
-elseif strcmp(which_freq, 'iaf')
-    cfg.foi = f_peak(s);
-end
-
+cfg.foi = iaf;
 cfg.t_ftimwin = ones(length(cfg.foi),1)*winl;
-cfg.toi = toi;
-
+cfg.toi = -1.75:0.05:0.5;
 cfg.keeptrials = 'yes';
-% cfg.output = 'fourier';
+cfg.output = 'fourier';
+cfg.pad = 'nextpow2';
 cfg.trials = trl_oi;
 
 TFR = ft_freqanalysis(cfg,data);
-
-
+TFR.powspctrm = abs(TFR.fourierspctrm);
+TFR = rmfield(TFR,'fourierspctrm');
 % combine planar
 cfg = [];
 cfg.method = 'sum';
@@ -216,26 +217,25 @@ TFR = ft_combineplanar(cfg,TFR);
 % select time of interest
 cfg = [];
 cfg.avgoverchan = 'yes';
-cfg.latency = [glm_time_sig(1), glm_time_sig(2)];
-cfg.avgovertime = 'yes';            
-cfg.avgoverfreq = 'yes';
+cfg.avgovertime = 'yes';
+cfg.latency = time_oi;
 IAF = ft_selectdata(cfg,TFR);
 
 alpha_pow = IAF.powspctrm;
 
-%% time on task model
+%% GLM: Time-On-Task
 
-const = ones(length(condi),1);
-% Guided Target
-gui = condi(:,1);
+const = ones(length(condi),1);  
 
-Xtot = [const,gui,tot];
+Xtot = [const,tot];% cope
+tot_contr = [0 1];
 
-% distractor inhibition
+
+% H1: blanket inhibition
 Y = coh_D.trial;
 
 % T stats
-T_tot = totGLM(Xtot,Y);
+T_tot = totGLM(Xtot,tot_contr, Y);
 
 
 %% alpha model
@@ -244,12 +244,12 @@ T_tot = totGLM(Xtot,Y);
 Y = coh_D.trial;
 
 % T stats
-T_alpha = alphaGLM(Y,alpha_pow,gui);
+T_alpha = alphaGLM(Y,alpha_pow);
 
 
 %% Tot and alpha
 % H1: blanket
-T_alpha_tot = totalphaGLM(gui,alpha_pow,tot,Y);
+T_alpha_tot = totalphaGLM(alpha_pow,tot,Y);
 
 
 %% Permutations
@@ -257,20 +257,38 @@ block_boundaries = [1];
 
 block_size = 0;
 
-for c = 1:length(condi)
-    if c > 1 && (condi(c) ~= condi(c-1) || block_size ==40)
+
+% distinguish between blocks for randomization
+condi_comb = [[0,0];[0,1];[1,0];[1,1]];
+
+condi_idx = zeros(length(condi),1);
+
+for c = 1:length(condi_comb)
+    cur_cond = zeros(size(condi,1),1);
+
+    for ti = 1:size(condi,1)
+        cur_cond(ti) = isequal(condi(ti,1:2),condi_comb(c,:));
+        
+    end
+    
+    condi_idx(logical(cur_cond)) = c;
+    
+end
+
+for c = 1:length(condi_idx)
+    if c > 1 && (condi_idx(c) ~= condi_idx(c-1) || block_size ==40)
        block_boundaries = [block_boundaries;c];
        block_size = 0;
     end
     block_size = block_size + 1;
 end
 
-block_boundaries = [block_boundaries;length(condi)];
+block_boundaries = [block_boundaries;length(condi)+1];
 
 num_blocks = length(block_boundaries)-1;
 
 num_perm = 1000;
-T_alpha_perm = zeros(num_perm,length(coh_T.label));
+T_alpha_perm = zeros(num_perm,length(coh_D.label));
 
 T_alpha_tot_perm = T_alpha_perm;
 
@@ -279,17 +297,13 @@ for n =1:num_perm
     
     shuffled_order = randperm(num_blocks);
     
-    shuf_T = zeros(size(coh_T.trial,1),102);
-    shuf_D = shuf_T;
+    shuf_D = zeros(size(coh_D.trial,1),102);
     
     cnt = 1;
     for i = 1:num_blocks
         start_index = block_boundaries(shuffled_order(i));
         end_index = block_boundaries(shuffled_order(i)+1)-1;
-        
-        % cut out T 
-        block = coh_T.trial(start_index:end_index,:);
-        shuf_T(cnt:cnt+(end_index-start_index),:) = block;
+       
         
         % cut out D
         block = coh_D.trial(start_index:end_index,:);
@@ -297,17 +311,23 @@ for n =1:num_perm
         cnt = cnt+(end_index-start_index)+1;
     end
     
-    if size(coh_T.trial,1) ~= (cnt)
+    if size(coh_D.trial,1) ~= (cnt-1)
         error('number of trials not accounted for')
     end
     
-    % H1: blanket
-    Y  = (shuf_T+shuf_D)./2;
-    T_alpha_perm(n,:) = alphaGLM(Y,alpha_pow,gui);
+    Y  = shuf_D;
+    T_alpha_perm(n,:) = alphaGLM(Y,alpha_pow);
     
-    T_alpha_tot_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y);
+    T_alpha_tot_perm(n,:) = totalphaGLM(alpha_pow,tot,Y);
     
+ 
     
+    if n>1
+        assert(~all(T_alpha_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        assert(~all(T_alpha_perm(n,:) == 0), sprintf('Permutation %d has all-zero T-values', n))
+        
+
+    end
 end
 
 
@@ -315,17 +335,16 @@ T_alpha_z = (T_alpha' - mean(T_alpha_perm))./std(T_alpha_perm);
 
 T_alpha_tot_z =(T_alpha_tot' - mean(T_alpha_tot_perm))./std(T_alpha_tot_perm);
 
-save(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set,'.mat')),'T_tot', 'T_alpha_z','T_alpha_tot_z')  
+save(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set,'_start_',num2str(time_oi(1)*1000),'_end_',num2str(time_oi(2)*1000),'.mat')),'T_tot', 'T_alpha_z','T_alpha_tot_z')  
 
 end
 
-function T_tot = totGLM(Xtot,Y)
+function T_tot = totGLM(Xtot,tot_contr, Y)
 
     % pseudoinverse
     Xptot = pinv(Xtot);
 
-    % cope
-    tot_contr = [0 0 1];        % target vs unguided contrast
+    
     % fit model with pseudoinverse matrix
     beta_tot = Xptot*Y;
 
@@ -337,7 +356,7 @@ function T_tot = totGLM(Xtot,Y)
     res_dot = diag(res'*res);
 
     % degrees of freedom
-    dof_error = length(Y) - rank(Xtot);
+    dof_error = size(Y,1) - rank(Xtot);
 
     varres = res_dot/dof_error;
 
@@ -349,20 +368,22 @@ function T_tot = totGLM(Xtot,Y)
     
 end
 
-function T_alpha = alphaGLM(Y,alpha_pow,gui)
-   const = ones(size(Y,1),1);
+function T_alpha = alphaGLM(Y,alpha_pow)
+    const = ones(size(Y,1),1);
     T_alpha = zeros(size(Y,2),1);
+    alpha_z = zscore(alpha_pow(:));
+
+
+    X_alpha = [const, alpha_z];
+    alpha_contr = [0 1];
+
+
+
+    % pseudoinverse
+    Xpalpha = pinv(X_alpha);
     for c = 1:size(Y,2)
-
-        alpha_z = zscore(alpha_pow(:));
+       
         Yc = Y(:,c);
-        X_alpha = [const, gui,alpha_z];
-
-        % pseudoinverse
-        Xpalpha = pinv(X_alpha);
-
-        % cope
-        alpha_contr = [0 0 1];        % target vs unguided contrast
 
         % fit model with pseudoinverse matrix
         beta_alpha = Xpalpha*Yc;
@@ -375,7 +396,7 @@ function T_alpha = alphaGLM(Y,alpha_pow,gui)
         res_dot = diag(res'*res);
 
         % degrees of freedom
-        dof_error = length(Yc) - rank(X_alpha);
+        dof_error = size(Yc,1) - rank(X_alpha);
 
         varres = res_dot/dof_error;
 
@@ -390,21 +411,23 @@ function T_alpha = alphaGLM(Y,alpha_pow,gui)
 end
 
 
-function T_tot_alpha = totalphaGLM(gui,alpha_pow,tot,Y)
+function T_tot_alpha = totalphaGLM(alpha_pow,tot,Y)
 
     const = ones(size(Y,1),1);
     T_tot_alpha = zeros(size(Y,2),1);
+    alpha_z = zscore(alpha_pow(:));
+    
 
+    X_tot_alpha = [const, tot,alpha_z];
+    % cope
+    tot_alpha_contr = [0 0 1];        % target vs unguided contrast
+
+    
+    % pseudoinverse
+    Xptotalpha = pinv(X_tot_alpha);
+    
     for c = 1:size(Y,2)
-        alpha_z = zscore(alpha_pow(:));
         Yc = Y(:,c);
-        X_tot_alpha = [const, gui,tot,alpha_z];
-
-        % pseudoinverse
-        Xptotalpha = pinv(X_tot_alpha);
-
-        % cope
-        tot_alpha_contr = [0 0 0 1];        % target vs unguided contrast
 
         % fit model with pseudoinverse matrix
         beta_tot_alpha = Xptotalpha*Yc;
@@ -417,7 +440,7 @@ function T_tot_alpha = totalphaGLM(gui,alpha_pow,tot,Y)
         res_dot = diag(res'*res);
 
         % degrees of freedom
-        dof_error = length(Y) - rank(X_tot_alpha);
+        dof_error = size(Yc,1) - rank(X_tot_alpha);
 
         varres = res_dot/dof_error;
 

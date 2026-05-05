@@ -17,4 +17,4 @@ set -eu
 module purge; module load bluebear
 module load MATLAB/2019b
 
-matlab -nodisplay -r "d1_RIFT_alpha_coh_distractor(${SLURM_ARRAY_TASK_ID}, 'gui', 'iaf'), quit"
+matlab -nodisplay -r "d1_RIFT_alpha_coh_distractor(${SLURM_ARRAY_TASK_ID}, 'gui', [nan, nan]), quit"
