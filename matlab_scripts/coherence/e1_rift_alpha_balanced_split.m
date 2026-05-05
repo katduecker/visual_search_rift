@@ -6,7 +6,7 @@
 % (c), Katharina Duecker
 % last edited, Oct-05-2025
 
-function e1_rift_alpha_balanced_split(s)
+function e1_rift_alpha_balanced_split(s, time_init)
 
 % inputs
 % s: subject index
@@ -19,7 +19,9 @@ filttype={'firws', 'twopass'};
 
 num_bins = 4;
 winl = 0.5;
-condi_all = {{'ni','16ta'},{'ti','16ta'}, {'ni','32ta'},{'ti','32ta'},{'ni','16tp'},{'ti','16tp'}, {'ni','32tp'},{'ti','32tp'}};
+% don't split into target present/absent because RT is not part of the
+% split!
+condi_all = {{'ni','16t'},{'ti','16t'}, {'ni','32t'},{'ti','32t'}};
 
 
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
@@ -45,11 +47,16 @@ load(fullfile(pth,'matlab_scripts',"preproc_meg",'idx_subjoi.mat'));
 mkdir(fullfile(cohpth,subj{s}));
 
 % load SOI, IAFs, and signfiicant time 
-load(fullfile(glmpth, 'glm_RT_soi_iaf_subj'))
+load(fullfile(glmpth, 'glm_RT_soi_iaf_subj'), 'subj_soi', 'iaf_glm', 'glm_time_sig')
 
 chan_subj = subj_soi{s};
 iaf = iaf_glm(s);
-time_oi = glm_time_sig;
+% if pre-defined time_oi, take that; otherwise use GLM time points
+time_oi = zeros(1,2);
+time_oi(isnan(time_init)) = glm_time_sig(isnan(time_init));
+time_oi(~isnan(time_init)) = time_init(~isnan(time_init));
+
+load(fullfile(cohsoipth, subj{s}, 'soi_stat.mat'), 'soigrad')
 
 %% load data 
 %- this is a bit complicated but the split up data has information about which diode contains the T and D signal!
@@ -84,8 +91,6 @@ if isfield(data,'sampleinfo')
  data = rmfield(data,'sampleinfo');
 end
 
-hits = strcmp(behav_array(:,2),'h');
-
 %% find trigger current condition
 trig_load = load(fullfile(pth,'experiment','trigdef.mat'));
 trigdef = trig_load.trigdef;
@@ -95,6 +100,8 @@ trigdef = trig_load.trigdef;
 cfg = [];
 cfg.method = 'mtmconvol';
 soi = {};
+
+% splot sensors OI into separate gradiometers
 for c = 1:length(chan_subj)
     chan = {chan_subj{c}(1:7)};
     soi = [soi;chan];
@@ -119,16 +126,15 @@ TFR = ft_combineplanar(cfg,TFR);
 
 % IAF
 cfg = [];
-cfg.latency = [glm_time_sig(1), glm_time_sig(2)];
+cfg.latency = time_oi;
 cfg.avgoverchan = 'yes';
 cfg.avgovertime = 'yes';
-cfg.avgoverfreq = 'yes';
 IAF = ft_selectdata(cfg,TFR);
 
 clear TFR
 %% Perform balanced split
 
-lblock = floor(length(behav_array)/n_blocks);
+lblock = floor(length(behav_array)/num_bins);
 
 % find Target and Distractor frequencies
 % trig 6067
@@ -155,15 +161,15 @@ for c_idx = 1:length(condi_all)
 end
 
 % number of trials per block
-n_trials = zeros(length(condi_all),n_blocks);
+n_trials = zeros(length(condi_all),num_bins);
 % loop over conditions
 for c_idx = 1:length(condi_all)
     
-    data_high6067 = cell(1,4);
-    data_low6067 = cell(1,4);
+    data_high6067 = cell(1,num_bins);
+    data_low6067 = cell(1,num_bins);
     
-    data_high6760 = cell(1,4);
-    data_low6760 = cell(1,4);
+    data_high6760 = cell(1,num_bins);
+    data_low6760 = cell(1,num_bins);
     
     condi = condi_all{c_idx};
 
@@ -176,7 +182,7 @@ for c_idx = 1:length(condi_all)
     
 
     h = 1;
-    for block_id = 1:n_blocks
+    for block_id = 1:num_bins
         
         % trials per block
         block_trials = behav_array(h:h+lblock-1,:);
@@ -289,10 +295,9 @@ for c_idx = 1:length(condi_all)
 
 end
 
-toi_split = [glm_time_sig(1), glm_time_sig(2)];
-toi_split = strjoin(arrayfun(@(x) num2str(x),toi_split.*1000,'UniformOutput',false),'_');
-filttype = strjoin(filttype, '_');
-save(fullfile(cohpth,subj{s},['balanced_split_',freq_split,'_',toi_split,'_',num2str(n_blocks),'_blocks', filttype]),'cohT_high','cohD_high','cohT_low','cohD_low','n_trials', 'hits_high', 'hits_low')
+toi_split = time_oi;
+toi_split = strjoin(arrayfun(@(x) num2str(x),toi_split.*1000,'UniformOutput',false),'_to_');
+save(fullfile(cohpth,subj{s},['balanced_split_',toi_split]),'cohT_high','cohD_high','cohT_low','cohD_low','n_trials', 'hits_high', 'hits_low')
 
 
 

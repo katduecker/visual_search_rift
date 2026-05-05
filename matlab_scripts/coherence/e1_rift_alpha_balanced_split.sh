@@ -10,4 +10,4 @@ set -eu
 module purge; module load bluebear
 module load MATLAB/2019b
 
-matlab -nodisplay -r "run e1_rift_alpha_balanced_split(${SLURM_ARRAY_TASK_ID}, 4), quit"
+matlab -nodisplay -r "e1_rift_alpha_balanced_split(${SLURM_ARRAY_TASK_ID}, [nan, nan]), quit"

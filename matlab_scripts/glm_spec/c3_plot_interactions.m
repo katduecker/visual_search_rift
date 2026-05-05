@@ -37,7 +37,7 @@ cm = flipud(cm);
 inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid');
 
 %% Load template subject for SPEC structure
-load(fullfile(alphapth, subj{1}, 'data_fourier_winl_10.mat'), 'TFR_avg')
+load(fullfile(alphapth, subj{1}, 'data_fourier_winl_5.mat'), 'TFR_avg')
 
 cfg = [];
 cfg.method = 'sum';
@@ -237,13 +237,10 @@ proj_max_avg = mean(proj_max_subj, 1);
 proj_diff_avg = mean(proj_max_subj - proj_min_subj, 1);
 
 %% Build outline arrays for the RT main TFR (averaged over chan_rep)
-build_outline = @(mask) deal( ...
-    [diff(mask); zeros(1,size(mask,2))], ...
-    [zeros(size(mask,1),1), diff(mask, [], 2)]);
 
 mask_RT = squeeze(logical(mean(stat_occi_RT.mask(ismember(stat_occi_RT.label,chan_rep),:,:))));
-[mask_line_vert_RT, mask_line_horz_RT] = build_outline(mask_RT);
-stat_T_RT = squeeze(mean(stat_occi_RT.stat(ismember(stat_occi_RT.label,chan_rep),:,:)));
+[B, L] = bwboundaries(mask_RT.*255, 'noholes');
+
 
 %% Compute time-on-task TFR (regressor 6) averaged over each subject's SOI
 % Also build a SPEC structure for the topoplot via grand average
@@ -295,7 +292,10 @@ title('RT main')
 subplot(2,4,2:3)
 imagesc(stat_occi_RT.time, stat_occi_RT.freq, stat_T_RT)
 hold on
-draw_outline_fn(stat_occi_RT.time, stat_occi_RT.freq, mask_line_vert_RT, mask_line_horz_RT)
+for k=1:length(B)
+    boundary = B{k};
+    plot(stat_occi_RT.freq(boundary(:,1)), stat_occi_RT.time(boundary(:,2)), 'k', 'LineWidth',2)
+end
 axis xy
 xlabel('time (s)'); xticks(-1:0.5:0)
 ylabel('frequency (Hz)'); yticks(10:10:30)
@@ -339,8 +339,7 @@ title('time-on-task')
 subplot(2,4,6:7)
 imagesc(SPEC.time, SPEC.freq, ToT_avg_TFR)
 axis xy
-xlim([-1 0])
-xlabel('time (s)'); xticks(-1:0.5:0)
+xlabel('time (s)'); xticks(-1:0.5:0.5)
 ylabel('frequency (Hz)'); yticks(10:10:30)
 title('time-on-task (T-values, subject SOI avg)')
 cb = colorbar;
@@ -456,22 +455,3 @@ ylabel('VIF')
 print(fig, fullfile(plotpth, ['supp_other_reg_interactions', suf]), '-dpng')
 print(fig, fullfile(plotpth, ['supp_other_reg_interactions', suf]), '-dsvg')
 
-%% Local function for outline drawing
-function draw_outline_fn(time_ax, freq_ax, m_vert, m_horz)
-for i = 1:size(m_vert,1)
-    for m = 2:size(m_vert,2)
-        if m_vert(i,m)
-            plot(time_ax(m-1:m)+0.025, ones(1,2)*freq_ax(i)+0.45, ...
-                 'Color','k','Linewidth',1.5)
-        end
-    end
-end
-for i = 2:size(m_horz,1)
-    for m = 2:size(m_horz,2)
-        if m_horz(i,m)
-            plot(time_ax(m-1)*ones(1,2)+0.025, freq_ax(i-1:i)+0.45, ...
-                 'Color','k','Linewidth',1.5)
-        end
-    end
-end
-end

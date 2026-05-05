@@ -14,7 +14,7 @@
 % using time points identified by RT GLM analysis, replace nan for fixed
 % time windows
 
-function d1_RIFT_alpha_coh(s, which_set, time_int)
+function d1_RIFT_alpha_coh(s, which_set, time_init)
 
 winl = 0.5;
 % Inputs
@@ -49,8 +49,8 @@ soi = subj_soi{s};
 
 % if pre-defined time_oi, take that; otherwise use GLM time points
 time_oi = zeros(1,2);
-time_oi(isnan(time_int)) = glm_time_sig(isnan(time_int));
-time_oi(~isnan(time_int)) = time_int(~isnan(time_int));
+time_oi(isnan(time_init)) = glm_time_sig(isnan(time_init));
+time_oi(~isnan(time_init)) = time_init(~isnan(time_init));
 iaf = iaf_glm(s);
 
 %% Init template structure
