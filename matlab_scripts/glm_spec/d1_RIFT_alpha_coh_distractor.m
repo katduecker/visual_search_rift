@@ -98,12 +98,16 @@ if strcmp(which_set, 'set32')
     tot = tot(trl_oi);
     cohD = cohD(trl_oi);
     condi = condi(trl_oi);
+   
+    X_first_fact = ones(size(condi,1),1);
     
 elseif strcmp(which_set, 'set16')
     trl_oi = (condi(:,1) + ~condi(:,2)) == 2;
     tot = tot(trl_oi);
     cohD = cohD(trl_oi);
     condi = condi(trl_oi);
+    X_first_fact = ones(size(condi,1),1);
+    
 else
     % select only guided
     trl_oi = condi(:,1);
@@ -111,6 +115,7 @@ else
     cohT = cohT(condi(:,1),:);
     cohD = cohD(condi(:,1),:);
     condi = condi(condi(:,1),:);
+    X_first_fact = [ones(size(condi,1),1), condi(:,2).*2-1];
     
     
 end
@@ -225,10 +230,8 @@ alpha_pow = IAF.powspctrm;
 
 %% GLM: Time-On-Task
 
-const = ones(length(condi),1);  
-
-Xtot = [const,tot];% cope
-tot_contr = [0 1];
+Xtot = [X_first_fact,tot];% cope
+tot_contr = [zeros(1, size(X_first_fact,2)), 1];
 
 
 % H1: blanket inhibition
@@ -244,12 +247,12 @@ T_tot = totGLM(Xtot,tot_contr, Y);
 Y = coh_D.trial;
 
 % T stats
-T_alpha = alphaGLM(Y,alpha_pow);
+T_alpha = alphaGLM(Y,alpha_pow, X_first_fact);
 
 
 %% Tot and alpha
 % H1: blanket
-T_alpha_tot = totalphaGLM(alpha_pow,tot,Y);
+T_alpha_tot = totalphaGLM(alpha_pow,tot,Y, X_first_fact);
 
 
 %% Permutations
@@ -316,9 +319,9 @@ for n =1:num_perm
     end
     
     Y  = shuf_D;
-    T_alpha_perm(n,:) = alphaGLM(Y,alpha_pow);
+    T_alpha_perm(n,:) = alphaGLM(Y,alpha_pow, X_first_fact);
     
-    T_alpha_tot_perm(n,:) = totalphaGLM(alpha_pow,tot,Y);
+    T_alpha_tot_perm(n,:) = totalphaGLM(alpha_pow,tot,Y, X_first_fact);
     
  
     
@@ -368,17 +371,13 @@ function T_tot = totGLM(Xtot,tot_contr, Y)
     
 end
 
-function T_alpha = alphaGLM(Y,alpha_pow)
-    const = ones(size(Y,1),1);
+function T_alpha = alphaGLM(Y,alpha_pow, X_first_fact)
     T_alpha = zeros(size(Y,2),1);
     alpha_z = zscore(alpha_pow(:));
 
 
-    X_alpha = [const, alpha_z];
-    alpha_contr = [0 1];
-
-
-
+    X_alpha = [X_first_fact, alpha_z];
+    alpha_contr = [zeros(1, size(X_first_fact,2)), 1];
     % pseudoinverse
     Xpalpha = pinv(X_alpha);
     for c = 1:size(Y,2)
@@ -411,16 +410,15 @@ function T_alpha = alphaGLM(Y,alpha_pow)
 end
 
 
-function T_tot_alpha = totalphaGLM(alpha_pow,tot,Y)
+function T_tot_alpha = totalphaGLM(alpha_pow,tot,Y, X_first_fact)
 
-    const = ones(size(Y,1),1);
     T_tot_alpha = zeros(size(Y,2),1);
     alpha_z = zscore(alpha_pow(:));
     
 
-    X_tot_alpha = [const, tot,alpha_z];
+    X_tot_alpha = [X_first_fact, tot,alpha_z];
     % cope
-    tot_alpha_contr = [0 0 1];        % target vs unguided contrast
+    tot_alpha_contr = [zeros(1,size(X_first_fact,2)), 0, 1];        % target vs unguided contrast
 
     
     % pseudoinverse

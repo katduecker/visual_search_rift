@@ -95,8 +95,9 @@ if strcmp(which_set, 'set32')
     cohT = cohT(condi(:,2),:);
     cohD = cohD(condi(:,2),:);
     condi = condi(condi(:,2),:);
-    
-    gui = condi(:,1);
+    gui = condi(:,1).*2-1;
+    const = ones(length(condi),1);  
+    X_first_fact = [const, gui];
     
 elseif strcmp(which_set, 'set16')
     trl_oi = ~condi(:,2);
@@ -104,7 +105,9 @@ elseif strcmp(which_set, 'set16')
     cohT = cohT(~condi(:,2),:);
     cohD = cohD(~condi(:,2),:);
     condi = condi(~condi(:,2),:);
-    gui = condi(:,1);
+    gui = condi(:,1).*2-1;
+    const = ones(length(condi),1);  
+    X_first_fact = [const, gui];
     
 
 elseif strcmp(which_set, 'gui')
@@ -113,8 +116,9 @@ elseif strcmp(which_set, 'gui')
     cohT = cohT(condi(:,1),:);
     cohD = cohD(condi(:,1),:);
     condi = condi(condi(:,1),:);
-    
-    gui = zeros(length(condi),1);
+    const = ones(length(condi),1); 
+    set32 = condi(:,2).*2-1;
+    X_first_fact = [const, set32];
     
 elseif strcmp(which_set, 'ungui')
     trl_oi = ~condi(:,1);
@@ -122,12 +126,16 @@ elseif strcmp(which_set, 'ungui')
     cohT = cohT(~condi(:,1),:);
     cohD = cohD(~condi(:,1),:);
     condi = condi(~condi(:,1),:);
-    
-   gui = zeros(length(condi),1);
+    const = ones(length(condi),1); 
+    set32 = condi(:,2).*2-1;
+    X_first_fact = [const, set32];
     
 else
     trl_oi = logical(ones(length(condi),1));
-    gui = condi(:,1);
+    const = ones(length(condi),1);
+    gui = condi(:,1).*2-1;
+    set32 = condi(:,2).*2-1;
+    X_first_fact = [const, gui, set32];
     
 end
 
@@ -251,16 +259,8 @@ alpha_pow = IAF.powspctrm;
 
 %% GLM: Time-On-Task
 
-const = ones(length(condi),1);  
-
-if strcmp(which_set,"gui")
-    Xtot = [const,tot];% cope
-    tot_contr = [0 1];       
-else
-    Xtot = [const,gui,tot];
-    % cope
-    tot_contr = [0 0 1];        
-end
+Xtot = [X_first_fact, tot];
+tot_contr = [zeros(1,size(X_first_fact,2)), 1];
 
 % H1: blanket inhibition
 Y = (coh_T.trial+coh_D.trial)./2;
@@ -281,21 +281,21 @@ T_tot_H2 = totGLM(Xtot, tot_contr, Y);
 Y_H1 = (coh_T.trial+coh_D.trial)./2;
 
 % T stats
-T_alpha_H1 = alphaGLM(Y_H1,alpha_pow,gui);
+T_alpha_H1 = alphaGLM(Y_H1,alpha_pow,X_first_fact);
 
 % H2: increased top-down control
 Y_H2 = (coh_T.trial-coh_D.trial).^2;
 
 % T stats
-T_alpha_H2 = alphaGLM(Y_H2,alpha_pow,gui);
+T_alpha_H2 = alphaGLM(Y_H2,alpha_pow,X_first_fact);
 
 
 %% Tot and alpha
 % H1: blanket
-T_alpha_tot_H1 = totalphaGLM(gui,alpha_pow,tot,Y_H1);
+T_alpha_tot_H1 = totalphaGLM(X_first_fact,alpha_pow,tot,Y_H1);
 
 % H2: top down
-T_alpha_tot_H2 = totalphaGLM(gui,alpha_pow,tot,Y_H2);
+T_alpha_tot_H2 = totalphaGLM(X_first_fact,alpha_pow,tot,Y_H2);
 
 %% Permutations
 block_boundaries = [1];
@@ -368,17 +368,17 @@ for n =1:num_perm
     
     % H1: blanket
     Y_H1  = (shuf_T+shuf_D)./2;
-    T_alpha_H1_perm(n,:) = alphaGLM(Y_H1,alpha_pow,gui);
+    T_alpha_H1_perm(n,:) = alphaGLM(Y_H1,alpha_pow,X_first_fact);
     
-    T_alpha_tot_H1_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y_H1);
+    T_alpha_tot_H1_perm(n,:) = totalphaGLM(X_first_fact,alpha_pow,tot,Y_H1);
     
     
     % H2: top-down control
     Y_H2  = (shuf_T-shuf_D).^2;
     
-    T_alpha_H2_perm(n,:) = alphaGLM(Y_H2,alpha_pow,gui);
+    T_alpha_H2_perm(n,:) = alphaGLM(Y_H2,alpha_pow,X_first_fact);
     
-    T_alpha_tot_H2_perm(n,:) = totalphaGLM(gui,alpha_pow,tot,Y_H2); 
+    T_alpha_tot_H2_perm(n,:) = totalphaGLM(X_first_fact,alpha_pow,tot,Y_H2); 
     
     
     if n>1
@@ -430,21 +430,12 @@ function T_tot = totGLM(Xtot,tot_contr, Y)
     
 end
 
-function T_alpha = alphaGLM(Y,alpha_pow,gui)
-    const = ones(size(Y,1),1);
+function T_alpha = alphaGLM(Y,alpha_pow,X_first_fact)
     T_alpha = zeros(size(Y,2),1);
     alpha_z = zscore(alpha_pow(:));
-
-    if all(gui==0)
-        X_alpha = [const, alpha_z];
-        alpha_contr = [0 1];
-
-    else
-        X_alpha = [const, gui,alpha_z];
-        % cope
-        alpha_contr = [0 0 1];        % alpha contrast
-
-    end
+    
+    X_alpha = [X_first_fact, alpha_z];
+    alpha_contr = [zeros(1,size(X_first_fact,2)), 1];
 
     % pseudoinverse
     Xpalpha = pinv(X_alpha);
@@ -478,21 +469,13 @@ function T_alpha = alphaGLM(Y,alpha_pow,gui)
 end
 
 
-function T_tot_alpha = totalphaGLM(gui,alpha_pow,tot,Y)
+function T_tot_alpha = totalphaGLM(X_first_fact,alpha_pow,tot,Y)
 
-    const = ones(size(Y,1),1);
     T_tot_alpha = zeros(size(Y,2),1);
     alpha_z = zscore(alpha_pow(:));
     
-    if all(gui==0)
-        X_tot_alpha = [const, tot,alpha_z];
-        % cope
-        tot_alpha_contr = [0 0 1];        % target vs unguided contrast
-    else
-        X_tot_alpha = [const, gui,tot,alpha_z];
-        % cope
-        tot_alpha_contr = [0 0 0 1];        % target vs unguided contrast
-    end
+    X_tot_alpha = [X_first_fact, tot, alpha_z];
+    tot_alpha_contr = [zeros(1,size(X_first_fact,2)), 1, 1];
     
     % pseudoinverse
     Xptotalpha = pinv(X_tot_alpha);

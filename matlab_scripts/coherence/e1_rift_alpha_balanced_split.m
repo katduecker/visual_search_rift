@@ -190,7 +190,13 @@ for c_idx = 1:length(condi_all)
     for block_id = 1:num_bins
         
         % trials per block
-        block_trials = behav_array(h:h+lblock-1,:);
+        
+        % take all remaining trials for last block
+        if block_id == num_bins
+            block_trials = behav_array(h:end,:);
+        else
+            block_trials = behav_array(h:h+lblock-1,:);
+        end
         
         % which condition do trials belong to?
         condi_trials = cell2mat(block_trials(ismember([block_trials{:,1}],trigger),1));
@@ -200,12 +206,20 @@ for c_idx = 1:length(condi_all)
         if length(condi_trials)>1
             
             % alpha
-            block_alpha = IAF.powspctrm(h:h+lblock-1);
+            if block_id == num_bins
+                block_alpha = IAF.powspctrm(h:end);
+            else
+                block_alpha = IAF.powspctrm(h:h+lblock-1);
+            end
             condi_alpha = block_alpha(ismember([block_trials{:,1}],trigger));
             
             % data
             cfg = [];
-            cfg.trials = h:h+lblock-1;
+            if block_id == num_bins
+                cfg.trials = h:size(IAF.powspctrm,1);
+            else
+                cfg.trials = h:h+lblock-1;
+            end
             data_block = ft_selectdata(cfg,data);
             
             cfg.trials = ismember([block_trials{:,1}],trigger);

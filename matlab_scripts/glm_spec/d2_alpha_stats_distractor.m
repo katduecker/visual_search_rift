@@ -23,7 +23,7 @@ outpth = fullfile(pth,'results','meg','9 GLM', 'glm_rift');
 
 cohpth = fullfile(pth,'results','meg','8 COH single trl');
 
-addpath(fullfile(pth,'matlab scripts/',"cbrewer/"))
+addpath(fullfile(pth,'matlab_scripts/',"cbrewer/"))
 cm = cbrewer('div','RdBu',201);
 cm = flipud(cm);
 
@@ -84,7 +84,7 @@ end
 
 print(fig,fullfile(plotpth,['distractor_glm_single_subj_',which_set]),'-dsvg')
 print(fig,fullfile(plotpth,['distractor_glm_single_subj_', which_set]),'-dpng')
-
+close all
 cfg = [];
 cfg.keepindividual = 'yes';
 grand_alpha = ft_timelockgrandaverage(cfg,glm_subj_alpha{:});
@@ -105,14 +105,14 @@ load(fullfile(pth, 'matlab_scripts', 'preproc_meg','occi_sens.mat'))
 cfg = [];
 cfg.neighbours       = neighbours;                 % fieldtrip template                    
 cfg.method           = 'montecarlo';
-cfg.minnbchan        = 1;
+cfg.minnbchan        = 2;
 cfg.statistic        = 'ft_statfun_depsamplesT';
 cfg.correctm         = 'cluster';
 cfg.clusterstatistic = 'maxsum';
 cfg.tail             = -1;
 cfg.clustertail      = -1;
 cfg.numrandomization = 5000;
-cfg.alpha            = 0.05;
+cfg.alpha            = 0.05/3;                  % correction multiple comp
 cfg.clusteralpha = 0.05;
 cfg.latency = [1 1];
 design = ones(2,2*length(subj));
@@ -123,11 +123,11 @@ cfg.design   = design;
 cfg.uvar     = 1;
 cfg.ivar     = 2;
 
-stat_alpha = ft_timelockstatistics(cfg,grand_alpha,null_hyp);
+%stat_alpha = ft_timelockstatistics(cfg,grand_alpha,null_hyp);
 stat_alpha_tot = ft_timelockstatistics(cfg,grand_alpha_tot,null_hyp);
 
-soi_alpha_tot = stat_alpha.label(stat_alpha.mask);
-fig = figure('Position',[0 0 600 200]);
+soi_alpha_tot = stat_alpha_tot.label(stat_alpha_tot.mask);
+fig = figure('Position',[0 0 300 200]);
 cfg = [];
 cfg.layout = 'neuromag306cmb_helmet.mat';
 cfg.parameter = 'avg';
@@ -137,19 +137,11 @@ cfg.xlim = [1 1];
 cfg.highlight = 'on';
 cfg.parameter = 'stat';
 cfg.comment = 'no';
-cfg.highlightchannel = stat_alpha.label(stat_alpha.mask);
 cfg.highlightsize = 15;
 
 
 cfg.figure = 'gca';
 cfg.zlim = [-3 3];
-subplot(121)
-ft_topoplotER(cfg,stat_alpha);
-colormap(cm)
-cb = colorbar;
-cb.Ticks = -3:3:3;
-title('RIFTavg - alpha');
-subplot(122)
 cfg.highlightchannel = stat_alpha_tot.label(stat_alpha_tot.mask);
 
 ft_topoplotER(cfg,stat_alpha_tot);
