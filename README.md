@@ -14,9 +14,7 @@ This study re-analyses the same data to ask whether occipital alpha oscillations
 
 ## Data availability
 
-Processed data needed to reproduce the analyses are archived on Zenodo: https://zenodo.org/records/17752242
-
-Raw MEG data can be requested from the first author (katharina.duecker@gmail.com).
+Raw MEG data are archived on Zenodo: https://zenodo.org/records/17752242
 
 ## Repository layout
 
