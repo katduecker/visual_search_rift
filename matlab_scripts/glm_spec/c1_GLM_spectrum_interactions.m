@@ -17,7 +17,7 @@ function c1_GLM_spectrum_interactions(s)
 % Input:
 % -s: subject index
 
-winl=0.5;        % window length
+winl=1;        % window length
 
 %% paths
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment'))

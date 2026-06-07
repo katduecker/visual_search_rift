@@ -11,7 +11,7 @@
 
 function c2_GLM_spec_stats_interactions(end_time)
 
-winl = 0.5;
+winl = 1;
 suf = '_interactions_piv';
 %% paths
 addpath('/rds/projects/j/jenseno-visual-search-rft/visual_search_rift/fieldtrip')
@@ -141,7 +141,7 @@ cfg.clustertail      = -1;
 cfg.numrandomization = 5000;
 cfg.alpha            = 0.05;
 cfg.clusteralpha = 0.05;
-cfg.latency          = [-1, end_time];
+cfg.latency          = [-1., end_time];
 cfg.parameter = 'powspctrm';
 design = ones(2,2*length(subj));
 design(1,:) = [1:length(subj), 1:length(subj)];
@@ -237,7 +237,7 @@ for s = 1:length(subj)
     cfg.numrandomization = 5000;
     cfg.alpha            = 0.05;
     cfg.clusteralpha = 0.05;
-    cfg.latency          = [-1.0 0.4];
+    cfg.latency          = [-1.0 0.5];
     cfg.parameter = 'powspctrm';
     design = ones(2,2*length(subj)-2);
     design(1,:) = [1:length(subj)-1, 1:length(subj)-1];

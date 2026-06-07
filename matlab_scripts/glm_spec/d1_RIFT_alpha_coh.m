@@ -16,7 +16,7 @@
 
 function d1_RIFT_alpha_coh(s, which_set, time_init)
 
-winl = 0.5;
+winl = 1;
 % Inputs
 % - s: subject index
 % - which_set (str), which trials to include

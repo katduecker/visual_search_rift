@@ -48,16 +48,16 @@ glm_subj_alpha = cell(length(subj),1);
 glm_subj_alpha_tot = cell(length(subj),1);
 
 soi_alpha_tot = cell(1,length(subj));
-fig = figure('Position',[0 0 1980 1080]);
-cfg = [];
-cfg.layout = 'neuromag306cmb_helmet.mat';
-cfg.parameter = 'avg';
-cfg.zlim = 'maxabs';
-cfg.marker = 'off';
-cfg.xlim = [1 1];
-cfg.highlight = 'on';
-cfg.comment = 'no';
-cfg.highlightsize = 15;
+% fig = figure('Position',[0 0 1980 1080]);
+% cfg = [];
+% cfg.layout = 'neuromag306cmb_helmet.mat';
+% cfg.parameter = 'avg';
+% cfg.zlim = 'maxabs';
+% cfg.marker = 'off';
+% cfg.xlim = [1 1];
+% cfg.highlight = 'on';
+% cfg.comment = 'no';
+% cfg.highlightsize = 15;
 for s = 1:length(subj)
     load(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set,'_start_-1000_end_400.mat')))
     
@@ -73,17 +73,17 @@ for s = 1:length(subj)
     
     cfg.figure = 'gca';
     cfg.zlim = [-2 2];
-    subplot(4,8,s)
-    ft_topoplotER(cfg,glm_alpha_tot);
-    colormap(cm)
-    glm_subj_alpha{s} = glm_alpha;
-    glm_subj_alpha_tot{s} = glm_alpha_tot;
+%     subplot(4,8,s)
+%     ft_topoplotER(cfg,glm_alpha_tot);
+%     colormap(cm)
+%     glm_subj_alpha{s} = glm_alpha;
+%     glm_subj_alpha_tot{s} = glm_alpha_tot;
     
     clear glm_alpha glm_alpha_tot
 end
-
-print(fig,fullfile(plotpth,['distractor_glm_single_subj_',which_set]),'-dsvg')
-print(fig,fullfile(plotpth,['distractor_glm_single_subj_', which_set]),'-dpng')
+% 
+% print(fig,fullfile(plotpth,['distractor_glm_single_subj_',which_set]),'-dsvg')
+% print(fig,fullfile(plotpth,['distractor_glm_single_subj_', which_set]),'-dpng')
 close all
 cfg = [];
 cfg.keepindividual = 'yes';
@@ -101,9 +101,14 @@ neighbours = ft_prepare_neighbours(cfg);
 
 % load occipital sensors
 load(fullfile(pth, 'matlab_scripts', 'preproc_meg','occi_sens.mat'))
+occi_grad = zeros(size(corrT.label));
 
+for c = 1:length(occi_soi)
+    occi_grad = occi_grad + cell2mat(cellfun(@(x) ~isempty(x), regexp(corrT.label,occi_soi{c}),'UniformOutput',false));
+end
 cfg = [];
-cfg.neighbours       = neighbours;                 % fieldtrip template                    
+cfg.neighbours       = neighbours;                 % fieldtrip template  
+
 cfg.method           = 'montecarlo';
 cfg.minnbchan        = 2;
 cfg.statistic        = 'ft_statfun_depsamplesT';
@@ -112,7 +117,7 @@ cfg.clusterstatistic = 'maxsum';
 cfg.tail             = -1;
 cfg.clustertail      = -1;
 cfg.numrandomization = 5000;
-cfg.alpha            = 0.05/3;                  % correction multiple comp
+cfg.alpha            = 0.05/3;                  % multipe comps
 cfg.clusteralpha = 0.05;
 cfg.latency = [1 1];
 design = ones(2,2*length(subj));
@@ -125,6 +130,9 @@ cfg.ivar     = 2;
 
 %stat_alpha = ft_timelockstatistics(cfg,grand_alpha,null_hyp);
 stat_alpha_tot = ft_timelockstatistics(cfg,grand_alpha_tot,null_hyp);
+% does not change results
+% cfg.channel        = occi_grad;
+% stat_alpha_tot_occi = ft_timelockstatistics(cfg,grand_alpha_tot,null_hyp);
 
 soi_alpha_tot = stat_alpha_tot.label(stat_alpha_tot.mask);
 fig = figure('Position',[0 0 300 200]);

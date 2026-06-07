@@ -23,7 +23,7 @@ outpth = fullfile(pth,'results','meg','9 GLM', 'glm_spec');
 plotpth = fullfile(pth,'results','meg','9 GLM', 'fig','GLM_spec_interactions');
 mkdir(plotpth)
 
-end_time = 0.4;
+end_time = 0.5;
 
 % Load main effect / interaction stats and jackknife
 load(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'.mat']))
@@ -37,7 +37,7 @@ cm = flipud(cm);
 inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid');
 
 %% Load template subject for SPEC structure
-load(fullfile(alphapth, subj{1}, 'data_fourier_winl_5.mat'), 'TFR_avg')
+load(fullfile(alphapth, subj{1}, 'data_fourier_winl_10.mat'), 'TFR_avg')
 
 cfg = [];
 cfg.method = 'sum';
@@ -146,8 +146,6 @@ col_freq = [117, 112, 179; 231, 41, 138]./255;
 fig = figure('Position',[0 0 1940 1080/2.5]);
 set(gcf, 'DefaultAxesFontSize', 11);
 
-
-
 % --- Cohen's f² topo ---
 ax_cohF_topo = subplot(1,6,1);
 cfg = [];
@@ -211,6 +209,9 @@ proj_min_subj = zeros(length(subj), length(SPEC.freq));
 proj_max_subj = zeros(length(subj), length(SPEC.freq));
 
 iaf_glm = zeros(length(subj),1);
+
+fig = figure('Position',[0 0 1940/2 1080]);
+
 for s = 1:length(subj)
     load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'proj_spec_min_rt','proj_spec_max_rt')
     chan_idx = ismember(SPEC.label, subj_soi{s});
@@ -229,12 +230,49 @@ for s = 1:length(subj)
     end
     [~, p] = max(proj_max_subj(s, :));
     iaf_glm(s) = SPEC.freq(p);
+    
+    subplot(8,4,s)
+    plot(SPEC.freq,proj_min_subj(s,:), 'Color', [28, 158, 119]./255, 'LineWidth', 1)
+    hold on
+    plot(SPEC.freq,proj_max_subj(s,:),'Color', 'k', 'LineWidth', 1)
+    xlim([4,30])
 end
 save(fullfile(outpth, 'glm_RT_soi_iaf_subj'), 'iaf_glm', 'glm_time_sig', '-append')
 
+print(fig, fullfile(plotpth, 'supp_proj_spectra'), '-dpdf', '-bestfit')
+print(fig, fullfile(plotpth, 'supp_proj_spectra'), '-dpng')
 proj_min_avg = mean(proj_min_subj, 1);
 proj_max_avg = mean(proj_max_subj, 1);
 proj_diff_avg = mean(proj_max_subj - proj_min_subj, 1);
+
+close all
+%% Plot fast and slow spectra (power)
+fig = figure('Position',[0 0 1940/2 1080/1.15]);
+fast_spec_avg = zeros(size(proj_min_subj));
+slow_spec_avg = zeros(size(proj_min_subj));
+
+for s = 1:length(subj)
+    load(fullfile(alphapth, subj{s}, 'spectra_fast_slow.mat'))
+    fast_spec_avg(s,:) = spec_fast;
+    slow_spec_avg(s,:) = spec_slow;
+    
+    subplot(8,4,s)
+    plot(freqvec,spec_fast.*10e11, 'Color', [28, 158, 119]./255, 'LineWidth', 1)
+    hold on
+    plot(freqvec,spec_slow.*10e11,'Color', 'k', 'LineWidth', 1)
+    xlim([4,30])
+end
+print(fig, fullfile(plotpth, 'supp_raw_spectra'), '-dpdf', '-bestfit')
+print(fig, fullfile(plotpth, 'supp_raw_spectra'), '-dpng')
+
+fig = figure('Position',[0 0 1940/2 400]);
+plot(freqvec,mean(fast_spec_avg).*10e11, 'Color', [28, 158, 119]./255, 'LineWidth', 2)
+hold on
+plot(freqvec,mean(slow_spec_avg).*10e11,'Color', 'k', 'LineWidth', 2)
+xlim([4,30])
+
+print(fig, fullfile(plotpth, 'supp_raw_spectra_avg'), '-dpdf')
+print(fig, fullfile(plotpth, 'supp_raw_spectra_avg'), '-dpng')
 
 %% Build outline arrays for the RT main TFR (averaged over chan_rep)
 
@@ -298,17 +336,20 @@ xlabel('time (s)'); xticks(-1:0.5:0)
 ylabel('frequency (Hz)'); yticks(10:10:30)
 title('RT main (T-values)')
 cb = colorbar;
-caxis([-max(abs(stat_T_RT(:))), max(abs(stat_T_RT(:)))])
+caxis([-round(max(abs(stat_T_RT(:))),1), round(max(abs(stat_T_RT(:))),1)])
 cb.Label.String = 'T-value';
+cb.Ticks = [-round(max(abs(stat_T_RT(:))),1), 0, round(max(abs(stat_T_RT(:))),1)];
 box off
 colormap(cm)
 
 % ===== Projected spectra (line plots) =====
 subplot(2,4,4)
-plot(SPEC.freq, proj_min_avg, 'LineWidth', 1.5, 'Color', [8, 115, 59]./255)
+plot(SPEC.freq, proj_min_avg, 'LineWidth', 1.5, 'Color', [28, 158, 119]./255)
 hold on
 plot(SPEC.freq, proj_max_avg, 'LineWidth', 1.5, 'Color', 'k')
 xlim([4 30])
+yticks([0, 0.25, 0.5, 0.75, 1])
+ylim([0.25, 1])
 ylabel('magnitude')
 xlabel('frequency (Hz)')
 legend('fast RT', 'slow RT', 'Location', 'best')
@@ -321,12 +362,10 @@ subplot(2,4,5)
 cfg = [];
 cfg.parameter = 'powspctrm';
 cfg.zlim = 'maxabs';
-cfg.highlight = 'on';
 cfg.marker = 'off';
 cfg.layout = 'neuromag306cmb_helmet.mat';
 cfg.xlim = [glm_time_sig(1) glm_time_sig(end)];
 cfg.ylim = [glm_freq_sig(1) glm_freq_sig(end)];
-cfg.highlightchannel = chan_rep;
 cfg.figure = 'gca';
 cfg.comment = 'no';
 ft_topoplotTFR(cfg, ToT_grand)
@@ -341,9 +380,10 @@ ylabel('frequency (Hz)'); yticks(10:10:30)
 title('time-on-task (T-values, subject SOI avg)')
 cb = colorbar;
 if max(abs(ToT_avg_TFR(:))) > 0
-    caxis([-max(abs(ToT_avg_TFR(:))), max(abs(ToT_avg_TFR(:)))])
+    caxis([-round(max(abs(ToT_avg_TFR(:))),1), round(max(abs(ToT_avg_TFR(:))),1)])
 end
 cb.Label.String = 'T-value';
+cb.Ticks = [-round(max(abs(ToT_avg_TFR(:))),1), 0, round(max(abs(ToT_avg_TFR(:))),1)];
 box off
 colormap(cm)
 
@@ -445,6 +485,7 @@ hold on
 er = errorbar(1:length(mean_VIF), mean_VIF, std_VIF, std_VIF);
 er.Color = 'k';
 er.LineStyle = 'none';
+yline(5, 'Linewidth', 1, 'LineStyle', ':', 'Color', 'k')
 xticklabels(regr_names(2:end))
 xtickangle(45)
 ylabel('VIF')

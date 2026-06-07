@@ -16,5 +16,5 @@ set -eu
 module purge; module load bluebear
 module load MATLAB/2019b
 
-end_time=0.4
+end_time=0.5
 matlab -nodisplay -r "c2_GLM_spec_stats($end_time); quit"

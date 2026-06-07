@@ -125,8 +125,9 @@ addpath(fullfile(pth,'Violinplot-Matlab-master'))
 fig = figure('Position',[0 0 1920/6 1080/3]);
 violinplot(subj_hits,{'high', 'low'},'ViolinColor',[[229, 44, 135]./255; [0,0,0]],'ShowMean',true);
 ylabel('hit rate')
-
-ytickformat('%.1f')
+ylim([0.5, 1])
+yticks([0.5, 0.75, 1])
+ytickformat('%.2f')
 print(fig,fullfile(plotpth,'hit_rate_high_vs_low'),'-dsvg')
 print(fig,fullfile(plotpth,'hit_rate_high_vs_low'),'-dpng')
 [h, p, ci, stats] = ttest(subj_hits(:,1), subj_hits(:,2))

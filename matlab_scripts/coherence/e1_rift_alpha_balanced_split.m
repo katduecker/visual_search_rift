@@ -18,7 +18,7 @@ filttype={'firws', 'twopass'};
 
 
 num_bins = 4;
-winl = 0.5;
+winl = 1;
 % don't split into target present/absent because RT is not part of the
 % split!
 condi_all = {{'ni','16t'},{'ti','16t'}, {'ni','32t'},{'ti','32t'}};

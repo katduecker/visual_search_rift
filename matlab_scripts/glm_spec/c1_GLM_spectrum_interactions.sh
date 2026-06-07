@@ -3,7 +3,7 @@
 #  c1_GLM_spectrum_indv_fourier.sh
 #  
 #
-#  (c) Katharina Duecker, last updated Oct 5 2025
+#  (c) Katharina Duecker, last updated 2 Jun 2026
 #
 #SBATCH --ntasks 1
 #SBATCH --time 10:00:0
