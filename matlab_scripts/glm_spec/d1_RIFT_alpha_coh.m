@@ -88,55 +88,54 @@ load(fullfile(cohpth,subj{s},['coh_single_trial_mcohere.mat']))
 % select conditions based on "which_set"
 condi = logical(condi);
 
-% get set size 32 trials
-if strcmp(which_set, 'set32')
-    trl_oi = condi(:,2);
-    tot = tot(condi(:,2));
-    cohT = cohT(condi(:,2),:);
-    cohD = cohD(condi(:,2),:);
-    condi = condi(condi(:,2),:);
-    gui = condi(:,1).*2-1;
-    const = ones(length(condi),1);  
-    X_first_fact = [const, gui];
-    
-elseif strcmp(which_set, 'set16')
-    trl_oi = ~condi(:,2);
-    tot = tot(~condi(:,2));
-    cohT = cohT(~condi(:,2),:);
-    cohD = cohD(~condi(:,2),:);
-    condi = condi(~condi(:,2),:);
-    gui = condi(:,1).*2-1;
-    const = ones(length(condi),1);  
-    X_first_fact = [const, gui];
-    
+% condi(:,1) flags guided (gui) trials; condi(:,2) flags set-size-32 trials.
+% which_set may be a single selector ('gui') or a cell of selectors
+% ({'gui','set32'}). Any dimension fixed by the selection is dropped from
+% the design matrix; unconstrained dimensions stay in as factors.
 
-elseif strcmp(which_set, 'gui')
-    trl_oi = condi(:,1);
-    tot = tot(condi(:,1));
-    cohT = cohT(condi(:,1),:);
-    cohD = cohD(condi(:,1),:);
-    condi = condi(condi(:,1),:);
-    const = ones(length(condi),1); 
-    set32 = condi(:,2).*2-1;
-    X_first_fact = [const, set32];
-    
-elseif strcmp(which_set, 'ungui')
-    trl_oi = ~condi(:,1);
-    tot = tot(~condi(:,1));
-    cohT = cohT(~condi(:,1),:);
-    cohD = cohD(~condi(:,1),:);
-    condi = condi(~condi(:,1),:);
-    const = ones(length(condi),1); 
-    set32 = condi(:,2).*2-1;
-    X_first_fact = [const, set32];
-    
-else
-    trl_oi = logical(ones(length(condi),1));
-    const = ones(length(condi),1);
-    gui = condi(:,1).*2-1;
-    set32 = condi(:,2).*2-1;
-    X_first_fact = [const, gui, set32];
-    
+if ~iscell(which_set)
+    which_set = cellstr(which_set);   % accept char/string as well as cell
+end
+
+trl_oi     = true(size(condi,1),1);
+gui_free   = true;   % keep gui as a factor unless it is selected
+set32_free = true;   % keep set32 as a factor unless it is selected
+
+for k = 1:numel(which_set)
+    switch which_set{k}
+        case 'gui'
+            trl_oi   = trl_oi &  condi(:,1);
+            gui_free = false;
+        case 'ungui'
+            trl_oi   = trl_oi & ~condi(:,1);
+            gui_free = false;
+        case 'set32'
+            trl_oi     = trl_oi &  condi(:,2);
+            set32_free = false;
+        case 'set16'
+            trl_oi     = trl_oi & ~condi(:,2);
+            set32_free = false;
+        case {'', 'all'}
+            % no constraint: full model
+        otherwise
+            error('build_X:unknownSet', 'Unknown set selector: %s', which_set{k});
+    end
+end
+
+% Select the trials of interest.
+tot   = tot(trl_oi);
+cohT  = cohT(trl_oi,:);
+cohD  = cohD(trl_oi,:);
+condi = condi(trl_oi,:);
+
+% Build the first-factor design matrix from the unconstrained dimensions.
+const        = ones(size(condi,1),1);
+X_first_fact = const;
+if gui_free
+    X_first_fact = [X_first_fact, condi(:,1).*2-1];
+end
+if set32_free
+    X_first_fact = [X_first_fact, condi(:,2).*2-1];
 end
 
 tot = (tot - mean(tot))';           % demean tot
