@@ -391,7 +391,7 @@ function T_alpha = alphaGLM(Y,alpha_pow, X_first_fact)
     alpha_z = zscore(alpha_pow(:));
 
 
-    X_alpha = [X_first_fact, alpha_z];
+    X_alpha = [X_first_fact, alpha_z, X_first_fact(:,2).*alpha_z];
     alpha_contr = [zeros(1, size(X_first_fact,2)), 1];
     % pseudoinverse
     Xpalpha = pinv(X_alpha);
@@ -431,7 +431,7 @@ function T_tot_alpha = totalphaGLM(alpha_pow,tot,Y, X_first_fact)
     alpha_z = zscore(alpha_pow(:));
     
 
-    X_tot_alpha = [X_first_fact, tot,alpha_z];
+    X_tot_alpha = [X_first_fact, tot,alpha_z, X_first_fact(:,2).*alpha_z];
     % cope
     tot_alpha_contr = [zeros(1,size(X_first_fact,2)), 0, 1];        % target vs unguided contrast
 

@@ -433,7 +433,7 @@ function T_alpha = alphaGLM(Y,alpha_pow,X_first_fact)
     T_alpha = zeros(size(Y,2),1);
     alpha_z = zscore(alpha_pow(:));
     
-    X_alpha = [X_first_fact, alpha_z];
+    X_alpha = [X_first_fact, alpha_z, X_first_fact(:,2).*alpha_z];
     alpha_contr = [zeros(1,size(X_first_fact,2)), 1];
 
     % pseudoinverse
@@ -473,7 +473,7 @@ function T_tot_alpha = totalphaGLM(X_first_fact,alpha_pow,tot,Y)
     T_tot_alpha = zeros(size(Y,2),1);
     alpha_z = zscore(alpha_pow(:));
     
-    X_tot_alpha = [X_first_fact, tot, alpha_z];
+    X_tot_alpha = [X_first_fact, tot, alpha_z, X_first_fact(:,2).*alpha_z];
     tot_alpha_contr = [zeros(1,size(X_first_fact,2)), 1, 1];
     
     % pseudoinverse
