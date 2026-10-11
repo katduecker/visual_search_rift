@@ -35,6 +35,8 @@ cm = flipud(cm);
 
 inpth = fullfile(pth,'results','meg','4 split conditions','sinusoid');
 
+m_n_trials = mean(n_trials_all)
+
 %% load template subject
 
 load(fullfile(alphapth, subj{1}, 'data_fourier_winl_10.mat'), 'TFR_avg')

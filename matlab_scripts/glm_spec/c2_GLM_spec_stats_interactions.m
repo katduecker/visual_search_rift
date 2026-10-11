@@ -263,5 +263,16 @@ for s = 1:length(subj)
     frequency_jack(s,2) = stat_occi_test_RT_main.freq(freq_idx);
 
 end
+save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'.mat']),'interval_jack','frequency_jack', '-append')
 
-save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'.mat']),'interval_jack','frequency_jack','-append')
+
+n_trials_all = zeros(1,length(subj));
+
+for s = 1:length(subj)
+
+    load(fullfile(outpth,subj{s},['glm_spec_rt',suf,'.mat']),'n_trials')
+    n_trials_all(s) = n_trials;
+end
+
+save(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'.mat']),'n_trials_all', '-append')
+

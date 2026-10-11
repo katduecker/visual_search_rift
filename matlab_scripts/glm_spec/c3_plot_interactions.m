@@ -23,12 +23,17 @@ outpth = fullfile(pth,'results','meg','9 GLM', 'glm_spec');
 plotpth = fullfile(pth,'results','meg','9 GLM', 'fig','GLM_spec_interactions');
 mkdir(plotpth)
 
-end_time = 0.5;
+end_time = 0.4;
 
 % Load main effect / interaction stats and jackknife
 load(fullfile(outpth,['stat_GLM_spec_occi_sens',suf,'_',num2str(end_time*1000),'.mat']))
 % Loaded: stat_all, stat_occi_RT, stat_occi_guiRT, stat_occi_set32RT, occi_grad,
 % interval_jack, frequency_jack
+
+m_trials = mean(n_trials_all)
+std_trials = std(n_trials_all)
+
+min(n_trials_all), max(n_trials_all)
 
 addpath(fullfile(pth,'matlab_scripts/',"cbrewer/"))
 cm = cbrewer('div','RdBu',201);

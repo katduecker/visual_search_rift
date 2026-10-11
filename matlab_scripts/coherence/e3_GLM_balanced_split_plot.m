@@ -23,8 +23,8 @@ cohpth = fullfile(pth,'results','meg','5 COH hilb', 'coh','balanced_split');
 plotpth = fullfile(pth,'results','meg','5 COH hilb','fig');
 mkdir(plotpth)
 load(fullfile(cohpth,'RIFT_balanced_split_glm_H1.mat'))
-
-
+mean(n_trials_all(:))
+std(n_trials_all(:))
 lwidth = 3;
 timevec = linspace(-0.5,0.5,1001);
 fig = figure('Position',[0 -100 1920/2.5 1080]);

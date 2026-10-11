@@ -353,7 +353,11 @@ T_alpha_z = (T_alpha' - mean(T_alpha_perm))./std(T_alpha_perm);
 
 T_alpha_tot_z =(T_alpha_tot' - mean(T_alpha_tot_perm))./std(T_alpha_tot_perm);
 
-save(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set,'_start_',num2str(time_oi(1)*1000),'_end_',num2str(time_oi(2)*1000),'.mat')),'T_tot', 'T_alpha_z','T_alpha_tot_z')  
+which_set_str = strjoin(which_set(~cellfun(@isempty, which_set)), '_');
+if isempty(which_set_str)
+    which_set_str = 'all',
+end
+save(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set_str,'_start_',num2str(time_oi(1)*1000),'_end_',num2str(time_oi(2)*1000),'.mat')),'T_tot', 'T_alpha_z','T_alpha_tot_z')  
 
 end
 
@@ -391,7 +395,7 @@ function T_alpha = alphaGLM(Y,alpha_pow, X_first_fact)
     alpha_z = zscore(alpha_pow(:));
 
 
-    X_alpha = [X_first_fact, alpha_z, X_first_fact(:,2).*alpha_z];
+    X_alpha = [X_first_fact, alpha_z];
     alpha_contr = [zeros(1, size(X_first_fact,2)), 1];
     % pseudoinverse
     Xpalpha = pinv(X_alpha);
@@ -431,7 +435,7 @@ function T_tot_alpha = totalphaGLM(alpha_pow,tot,Y, X_first_fact)
     alpha_z = zscore(alpha_pow(:));
     
 
-    X_tot_alpha = [X_first_fact, tot,alpha_z, X_first_fact(:,2).*alpha_z];
+    X_tot_alpha = [X_first_fact, tot,alpha_z];
     % cope
     tot_alpha_contr = [zeros(1,size(X_first_fact,2)), 0, 1];        % target vs unguided contrast
 

@@ -11,7 +11,7 @@ clear all; close all; clc;
 
 rmpath(genpath('/rds/projects/2018/jenseno-entrainment/fieldtrip'))
 
-which_set = 'gui';
+which_set = 'gui_set32';
 pth = '/rds/projects/j/jenseno-visual-search-rft/visual_search_rift';
 addpath(fullfile(pth,'fieldtrip'))
 ft_defaults;

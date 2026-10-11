@@ -110,8 +110,11 @@ for c = 1:length(condi_comb)
     
 end
 
+n_trials = size(condi_idx,1);
 
-%% Load TFR of fourier
+%save(fullfile(outpth,subj{s},'glm_spec_rt_interactions_piv.mat'), 'n_trials', '-append')
+
+% Load TFR of fourier
 
 load(fullfile(alphapth,subj{s},['data_fourier_winl_',num2str(winl*10),'.mat']),'TFR')
 
@@ -316,4 +319,4 @@ z_score_T = (model_T - squeeze(mean(T_perm,1)))./squeeze(std(T_perm,1));
 
 
 
-save(fullfile(outpth,subj{s},'glm_spec_rt_interactions_piv.mat'),'model_beta','model_T','proj_spec_max_rt','proj_spec_min_rt','CohensF_rt','z_score_T', 'T_perm', 'VIF', '-v7.3')
+save(fullfile(outpth,subj{s},'glm_spec_rt_interactions_piv.mat'),'model_beta','model_T','proj_spec_max_rt','proj_spec_min_rt','CohensF_rt','z_score_T', 'T_perm', 'VIF', 'n_trials', '-v7.3')
