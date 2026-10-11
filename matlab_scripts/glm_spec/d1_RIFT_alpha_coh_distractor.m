@@ -353,7 +353,11 @@ T_alpha_z = (T_alpha' - mean(T_alpha_perm))./std(T_alpha_perm);
 
 T_alpha_tot_z =(T_alpha_tot' - mean(T_alpha_tot_perm))./std(T_alpha_tot_perm);
 
-save(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set,'_start_',num2str(time_oi(1)*1000),'_end_',num2str(time_oi(2)*1000),'.mat')),'T_tot', 'T_alpha_z','T_alpha_tot_z')  
+which_set_str = strjoin(which_set(~cellfun(@isempty, which_set)), '_');
+if isempty(which_set_str)
+    which_set_str = 'all',
+end
+save(fullfile(outpth,subj{s},append('glm_coh_distractor',which_set_str,'_start_',num2str(time_oi(1)*1000),'_end_',num2str(time_oi(2)*1000),'.mat')),'T_tot', 'T_alpha_z','T_alpha_tot_z')  
 
 end
 

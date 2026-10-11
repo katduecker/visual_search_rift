@@ -396,7 +396,11 @@ T_alpha_z_H2 = (T_alpha_H2' - mean(T_alpha_H2_perm))./std(T_alpha_H2_perm);
 T_alpha_tot_z_H1 =(T_alpha_tot_H1' - mean(T_alpha_tot_H1_perm))./std(T_alpha_tot_H1_perm);
 T_alpha_tot_z_H2 =(T_alpha_tot_H2' - mean(T_alpha_tot_H2_perm))./std(T_alpha_tot_H2_perm);
 
-save(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set,'_start_',num2str(time_oi(1)*1000),'_end_',num2str(time_oi(2)*1000),'.mat')),'T_tot_H1', 'T_tot_H2', 'T_alpha_z_H1','T_alpha_z_H2','T_alpha_tot_z_H1','T_alpha_tot_z_H2')  
+which_set_str = strjoin(which_set(~cellfun(@isempty, which_set)), '_');
+if isempty(which_set_str)
+    which_set_str = 'all',
+end
+save(fullfile(outpth,subj{s},append('glm_coh_blanket_topdown',which_set_str,'_start_',num2str(time_oi(1)*1000),'_end_',num2str(time_oi(2)*1000),'.mat')),'T_tot_H1', 'T_tot_H2', 'T_alpha_z_H1','T_alpha_z_H2','T_alpha_tot_z_H1','T_alpha_tot_z_H2')  
 
 end
 

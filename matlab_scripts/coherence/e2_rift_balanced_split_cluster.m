@@ -33,9 +33,10 @@ avg_cohD_low = zeros(length(subj),4,1001);
 
 timevec = linspace(-0.5,0.5,1001);
 
+n_trials_all = zeros(length(subj), 4, 4);
 for s = 1:length(subj)
-    load(fullfile(cohpth,subj{s},'balanced_split_-1000_to_400.mat'))
-    
+    load(fullfile(cohpth,subj{s},'balanced_split_0_to_400.mat'))
+    n_trials_all(s,:,:) = n_trials;
     avg_cohT_high(s,:,:) = cohT_high(:,2000:3000);
     avg_cohD_high(s,:,:) = cohD_high(:,2000:3000);
     avg_cohT_low(s,:,:) = cohT_low(:,2000:3000);
@@ -43,7 +44,6 @@ for s = 1:length(subj)
     
     clear cohT_* cohD_*
 end
-
 
 %% Paste into fieldtrip structure
 % load in example subject to get ft structure
@@ -263,7 +263,7 @@ end
 
 statD = ft_timelockstatistics(cfg,COHD_high{:},COHD_low{:});
 
-save(fullfile(cohpth,'RIFT_balanced_split_glm_H1.mat'),'stat','statung', 'cohensd', 'cohensdung', 'avg_cohT_high','avg_cohT_low','avg_cohD_high','avg_cohD_low','statT','statD')
+save(fullfile(cohpth,'RIFT_balanced_split_glm_H1.mat'),'stat','statung', 'cohensd', 'cohensdung', 'avg_cohT_high','avg_cohT_low','avg_cohD_high','avg_cohD_low','statT','statD', 'n_trials_all')
 % %% High minus low
 % 
 % % guided search, 32
